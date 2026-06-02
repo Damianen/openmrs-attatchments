@@ -1,0 +1,39 @@
+services:
+  openmrs:
+    image: openmrs/openmrs-reference-application-distro:${OMRS_IMAGE_TAG:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-attachments}-openmrs
+    ports:
+      - "${OMRS_PORT:-8080}:8080"
+    environment:
+      DB_HOST: db
+      DB_DATABASE: ${OMRS_DB_NAME}
+      DB_USERNAME: ${OMRS_DB_USER}
+      DB_PASSWORD: ${OMRS_DB_PASSWORD}
+      DB_CREATE_TABLES: "true"
+      DB_AUTO_UPDATE: "true"
+      MODULE_WEB_ADMIN: "true"
+      OMRS_DEV_DEBUG: "${OMRS_DEV_DEBUG:-true}"
+    depends_on:
+      - db
+    volumes:
+      - openmrs-data:/usr/local/tomcat/.OpenMRS
+      - ../omod/target/modules:/usr/local/tomcat/.OpenMRS/modules
+
+  db:
+    image: mariadb:10.8
+    container_name: ${COMPOSE_PROJECT_NAME:-attachments}-db
+    command: >
+      mysqld
+      --character-set-server=utf8
+      --collation-server=utf8_general_ci
+    environment:
+      MYSQL_DATABASE: ${OMRS_DB_NAME}
+      MYSQL_USER: ${OMRS_DB_USER}
+      MYSQL_PASSWORD: ${OMRS_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${OMRS_DB_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  openmrs-data:
+  db-data:
