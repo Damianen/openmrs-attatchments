@@ -1,0 +1,10 @@
+services:
+  openmrs:
+    ports:
+      - "${OMRS_PORT:-8081}:8080"
+    environment:
+      OMRS_DEV_DEBUG: "false"
+
+  db:
+    ports:
+      - "${OMRS_DB_PORT:-3307}:3306"

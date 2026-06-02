@@ -59,3 +59,11 @@ bower_components
 
 # This test resource kept coming up
 api/OpenMRS_logo.png
+
+# Claude Code workspace
+.claude/
+
+# Docker OTAP env files — alleen .env.template wordt gecommit
+docker/.env
+docker/.env.*
+!docker/.env.template

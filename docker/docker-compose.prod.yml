@@ -1,0 +1,23 @@
+services:
+  openmrs:
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs/health/started"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    environment:
+      OMRS_DEV_DEBUG: "false"
+      MODULE_WEB_ADMIN: "false"
+    volumes:
+      - openmrs-data:/usr/local/tomcat/.OpenMRS
+      - ../omod/target/modules:/usr/local/tomcat/.OpenMRS/modules:ro
+
+  db:
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
