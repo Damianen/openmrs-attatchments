@@ -1,0 +1,33 @@
+name: sbom.yml
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Snyk
+        run: npm install -g snyk
+
+      - name: Install dependencies (for detection)
+        run: npm install
+
+      - name: Generate SBOM (CycloneDX)
+        run: snyk sbom --format=cyclonedx1.4+json > docs/sbom.cdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: docs/sbom.cdx.json
