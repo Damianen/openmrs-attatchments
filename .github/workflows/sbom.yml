@@ -3,8 +3,7 @@ name: Generate SBOM
 on:
   push:
     branches:
-      # Trigger workflow only for this branch
-      - feat/sbom
+      - main
   workflow_dispatch:
 
 jobs:
