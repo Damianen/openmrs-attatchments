@@ -23,7 +23,7 @@ jobs:
           cache: 'maven'
 
       - name: Resolve Maven dependencies
-        run: mvn clean compile -DskipTests
+        run: mvn clean install -DskipTests
 
       - name: Generate CycloneDX SBOM
         run: mvn org.cyclonedx:cyclonedx-maven-plugin:2.7.10:makeAggregateBom -DoutputFormat=json -DoutputName=sbom.cdx
