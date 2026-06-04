@@ -1,7 +1,9 @@
-name: sbom.yml
+name: Generate SBOM
+
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -12,19 +14,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          node-version: 20
+          distribution: 'temurin'
+          java-version: '8'
+          cache: 'maven'
 
-      - name: Install Snyk
-        run: npm install -g snyk
+      - name: Resolve Maven dependencies
+        run: mvn clean install -DskipTests
 
-      - name: Install dependencies (for detection)
-        run: npm install
+      - name: Generate CycloneDX SBOM
+        run: mvn org.cyclonedx:cyclonedx-maven-plugin:2.7.10:makeAggregateBom -DoutputFormat=json -DoutputName=sbom.cdx
 
-      - name: Generate SBOM (CycloneDX)
-        run: snyk sbom --format=cyclonedx1.4+json > docs/sbom.cdx.json
+      - name: Prepare output and move to docs
+        run: |
+          mkdir -p docs
+          mv target/sbom.cdx.json docs/sbom.cdx.json
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
