@@ -43,7 +43,7 @@ public class AttachmentResource extends DataDelegatingCrudResource<Attachment> i
 
 ## 3. Control A.8.15: Logging
 **Eis:** Gebeurtenissen (zoals toegang tot patiëntgegevens, fouten en informatiebeveiligingsincidenten) moeten worden vastgelegd (gelogd) en bewaard.
-**Status: Gedeeltelijk aanzwezig**
+**Status: Gedeeltelijk aanwezig**
 
 **Bewijs & Analyse:**
 Er is logging aanwezig om te registreren welke bestanden worden opgevraagd, wat een goede eerste stap is richting compliancy, maar de manier waarop dit wordt gedaan levert een datalek van medische persoonsgegevens (PII) in de systeemlogs op.
