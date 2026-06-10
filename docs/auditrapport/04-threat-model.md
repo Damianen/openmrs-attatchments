@@ -1,8 +1,8 @@
 # Threat model - OpenMRS Attachments Module
 
-## 1. Doel en plek in Sprint 2
+## 1. Doel
 
-Dit document is het threat model voor de OpenMRS Attachments Module. Het hoort bij Sprint 2, omdat de sprintopdracht vraagt om:
+Dit document is het threat model voor de OpenMRS Attachments Module. Het is opgesteld als onderdeel van de security- en risk-assessment documentatie. De opdracht vraagt om:
 
 - analyse op CIA/BIV;
 - C4-diagrammen;
@@ -30,7 +30,7 @@ In scope:
 - OpenMRS Core services die door de module worden gebruikt;
 - database metadata via obs/patient/encounter records;
 - attachment file storage;
-- CI/CD en dependencies op hoofdlijnen, omdat Sprint 2 dit expliciet noemt.
+- CI/CD en dependencies op hoofdlijnen, omdat deze onderdeel zijn van het security- en risk-assessment.
 
 Out of scope:
 
@@ -95,7 +95,7 @@ Risicobereidheid: voor patientdata accepteren we geen onbehandelde P0-risico's. 
 | T05 | Logging | Patientgegevens kunnen in logs terechtkomen. | Information Disclosure, Repudiation | Vertrouwelijkheid, traceerbaarheid | 3 | 4 | 12 | `AttachmentsServiceImpl.java` regels 39-43 logt patient id, uuid, naam, geboortedatum en identifiers. | Dataminimalisatie toepassen; alleen technische id/uuid loggen; auditlogging apart en gecontroleerd. |
 | T06 | Base64 upload | Malformed base64 input kan exceptions of onduidelijk foutgedrag veroorzaken. | Denial of Service, Tampering | Beschikbaarheid, integriteit | 3 | 3 | 9 | `AttachmentResource.java` regels 113-119 en 365-370 parsen base64 met vaste aannames over data URI structuur. | Aparte parser maken met duidelijke validatie en foutmeldingen; negatieve tests toevoegen. |
 | T07 | Dependencies | Verouderde dependencies kunnen bekende CVE's bevatten. | Elevation of Privilege, Tampering, DoS | Integriteit, beschikbaarheid, vertrouwelijkheid | 3 | 4 | 12 | Verdiepend onderzoek noemt o.a. Spring 4.1.4, Jackson 2.9, Log4j 1.2.15, Commons FileUpload 1.3.3 en XStream 1.4.3. | SBOM + SCA blijven draaien; findings triageren op runtime/reachability; upgrades plannen. |
-| T08 | CI/CD secrets en deployment | Secrets en deployment naar echte environments zijn nog niet volledig bewezen. | Spoofing, Tampering | Integriteit | 2 | 4 | 8 | Sprint 1 pipelineverslag noemt dat environment secrets en deployment workflow nog open staan. | Secrets pas toevoegen via GitHub Environments; prod approvals behouden; geen secrets in repo. |
+| T08 | CI/CD secrets en deployment | Secrets en deployment naar echte environments zijn nog niet volledig bewezen. | Spoofing, Tampering | Integriteit | 2 | 4 | 8 | Het pipelineverslag noemt dat environment secrets en deployment workflow nog open staan. | Secrets pas toevoegen via GitHub Environments; prod approvals behouden; geen secrets in repo. |
 | T09 | Build/testbaarheid | Reactor build is niet volledig stabiel, waardoor security tests minder betrouwbaar worden. | Tampering, Repudiation | Integriteit, traceerbaarheid | 3 | 3 | 9 | Verdiepend onderzoek: API-tests slagen, maar OMOD-fase faalt bij reactor build. | CI job splitsen of build fixen; security regressietests verplicht maken. |
 | T10 | Database metadata | Verkeerde of gemanipuleerde metadata kan attachment aan verkeerde patient/context koppelen. | Tampering | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Uploadflow gebruikt patient, visit en encounter parameters in `AttachmentResource.java`. | Strikte parameterchecks behouden en uitbreiden met tests voor patient/encounter/visit mismatch. |
 
@@ -169,4 +169,4 @@ Voor een bow-tie analyse is T01 de beste kandidaat, omdat er een duidelijke oorz
 
 De grootste risico's zitten niet in het normale gebruik van OpenMRS zelf, maar in de plekken waar deze module met bestanden werkt. Vooral download en file storage zijn gevoelig, omdat daar patientbestanden direct geraakt worden. Uploadvalidatie is de tweede grote groep, omdat onveilige bestanden of foutieve MIME-controle later voor misbruik kunnen zorgen.
 
-Voor Sprint 2 is de logische volgende stap om van de hoogste risico's een risicomatrix en bow-tie te maken. Daarna kan de security backlog definitief worden uitgewerkt met acceptatiecriteria en testbewijs.
+De logische volgende stap is om van de hoogste risico's een risicomatrix en bow-tie te maken. Daarna kan de security backlog definitief worden uitgewerkt met acceptatiecriteria en testbewijs.
