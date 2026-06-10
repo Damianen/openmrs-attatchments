@@ -1,0 +1,73 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="C4 Context" id="avUsZb9VXCXar9ZevV-J">
+    <mxGraphModel dx="2054" dy="1109" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="yTDthKjkS14tzUFoztD2-167" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F7FA;strokeColor=none;connectable=0;movable=0;resizable=0;rotatable=0;" value="" vertex="1">
+          <mxGeometry height="900" width="1500" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-168" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=24;fontStyle=1;fontColor=#1F2937;strokeColor=none;fillColor=none;" value="C4 Model - Level 1: System Context Diagram&lt;br&gt;OpenMRS Attachments Module" vertex="1">
+          <mxGeometry height="70" width="940" x="280" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-169" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#FFFFFF;strokeColor=#D0D7DE;fontSize=13;fontColor=#4B5563;align=center;verticalAlign=middle;spacing=8;" value="Shows the users and systems involved in uploading, viewing and downloading patient attachments through REST." vertex="1">
+          <mxGeometry height="42" width="810" x="345" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-170" parent="1" style="html=1;fontSize=11;dashed=0;whiteSpace=wrap;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;shape=mxgraph.c4.person2;align=center;metaEdit=1;points=[[0.5,0,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0]];resizable=0;" value="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;OpenMRS User&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Person]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;Uses OpenMRS to upload, view and download patient attachments.&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="180" width="230" x="40" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-171" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#8C8496;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#736782;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" value="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;Front-end Application / API Client&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Software System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;OpenMRS UI, external front-end or another system that calls the Attachments REST endpoints.&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="280" x="510" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-172" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#1061B0;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#0D5091;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" value="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;OpenMRS Attachments Module&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Software System - in scope]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;Manages patient file attachments through REST endpoints. Attachments are linked to patients through OpenMRS complex observations.&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="180" width="330" x="1060" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-173" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#8C8496;fontColor=#ffffff;align=center;arcSize=10;strokeColor=#736782;metaEdit=1;resizable=0;points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];" value="&lt;font style=&quot;font-size: 16px&quot;&gt;&lt;b&gt;OpenMRS Core / REST Web Services&lt;/b&gt;&lt;/font&gt;&lt;div&gt;[Software System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;font color=&quot;#cccccc&quot;&gt;Provides patient data, complex observations, authentication, authorization and REST framework behavior used by the module.&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="155" width="330" x="1060" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-174" edge="1" parent="1" source="yTDthKjkS14tzUFoztD2-170" style="endArrow=blockThin;html=1;fontSize=11;fontColor=#1F2937;strokeWidth=1.5;endFill=1;strokeColor=#5B6770;elbow=horizontal;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;labelBackgroundColor=#F5F7FA;" target="yTDthKjkS14tzUFoztD2-171" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;Uses OpenMRS to work with attachments&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[HTTPS]&lt;/div&gt;">
+          <mxGeometry relative="1" width="240" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-175" edge="1" parent="1" source="yTDthKjkS14tzUFoztD2-171" style="endArrow=blockThin;html=1;fontSize=11;fontColor=#1F2937;strokeWidth=1.5;endFill=1;strokeColor=#5B6770;elbow=horizontal;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;labelBackgroundColor=#F5F7FA;" target="yTDthKjkS14tzUFoztD2-172" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;Uploads, searches and downloads attachments&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;[REST/JSON over HTTPS]&lt;/div&gt;">
+          <mxGeometry relative="1" width="260" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-176" edge="1" parent="1" source="yTDthKjkS14tzUFoztD2-172" style="endArrow=blockThin;html=1;fontSize=11;fontColor=#1F2937;strokeWidth=1.5;endFill=1;strokeColor=#5B6770;elbow=vertical;metaEdit=1;endSize=14;startSize=14;jumpStyle=arc;jumpSize=16;rounded=0;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=#F5F7FA;" target="yTDthKjkS14tzUFoztD2-173" value="&lt;div style=&quot;text-align: center&quot;&gt;&lt;b&gt;Uses patients, obs, auth and REST services&lt;/b&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" width="260" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-177" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#FFFFFF;strokeColor=#D0D7DE;fontSize=12;fontColor=#374151;align=center;verticalAlign=middle;spacing=8;" value="" vertex="1">
+          <mxGeometry height="65" width="1040" x="230" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-178" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=14;fontStyle=1;fontColor=#1F2937;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="Legend" vertex="1">
+          <mxGeometry height="24" width="75" x="255" y="819" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-179" parent="1" style="shape=mxgraph.c4.person2;html=1;fillColor=#083F75;strokeColor=#06315C;fontColor=#ffffff;resizable=0;" value="" vertex="1">
+          <mxGeometry height="34" width="38" x="350" y="814" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-180" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#374151;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="Person" vertex="1">
+          <mxGeometry height="24" width="80" x="398" y="819" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-181" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#1061B0;strokeColor=#0D5091;" value="" vertex="1">
+          <mxGeometry height="18" width="34" x="500" y="822" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-182" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#374151;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="System in scope" vertex="1">
+          <mxGeometry height="24" width="130" x="544" y="819" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-183" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fillColor=#8C8496;strokeColor=#736782;" value="" vertex="1">
+          <mxGeometry height="18" width="34" x="700" y="822" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-184" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#374151;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="External system" vertex="1">
+          <mxGeometry height="24" width="120" x="744" y="819" as="geometry" />
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-185" edge="1" parent="1" style="endArrow=blockThin;html=1;strokeColor=#5B6770;strokeWidth=1.5;endFill=1;" value="">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="900" y="832" as="sourcePoint" />
+            <mxPoint x="970" y="832" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yTDthKjkS14tzUFoztD2-186" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#374151;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="Interaction" vertex="1">
+          <mxGeometry height="24" width="100" x="985" y="819" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
