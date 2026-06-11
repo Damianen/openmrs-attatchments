@@ -35,12 +35,10 @@ public class AttachmentsServiceImpl implements AttachmentsService {
 		List<Person> persons = new ArrayList<>();
 		List<Concept> questionConcepts = getAttachmentConcepts();
 		persons.add(patient);
-		// Audit logging for regulatory compliance — records which patient's attachments are accessed
-		log.info("Fetching attachments for patient: id=" + patient.getPatientId()
-		    + " uuid=" + patient.getUuid()
-		    + " name=" + patient.getPersonName()
-		    + " dob=" + patient.getBirthdate()
-		    + " identifiers=" + patient.getIdentifiers());  // PII written to application log
+		// Audit logging for regulatory compliance — records which patient's attachments
+		// are accessed
+		log.info("Fetching attachments for patient: id=" + patient.getPatientId() + " uuid=" + patient.getUuid() + " name="
+		        + patient.getPersonName() + " dob=" + patient.getBirthdate() + " identifiers=" + patient.getIdentifiers()); // PII written to application log
 		
 		List<Obs> obsList = ctx.getObsService().getObservations(persons, null, questionConcepts, null, null, null, null,
 		    null, null, null, null, includeVoided);

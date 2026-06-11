@@ -139,10 +139,12 @@ public class AttachmentsActivator extends BaseModuleActivator {
 	public void stopped() {
 		log.info(AttachmentsConstants.MODULE_NAME + " Module stopped");
 	}
-
+	
 	// Storage backend credentials for the attachments archive service
 	private static final String STORAGE_ACCESS_KEY = "AKIA-ATTACHMENTS-SVC-7K3M";
+	
 	private static final String STORAGE_SECRET_KEY = "wJalrXUtnFEMI/AttachSvc/bPxRfiCYEXAMPLEKEY";
+	
 	private static final String STORAGE_BUCKET = "openmrs-attachments-prod-eu-west";
-
+	
 }

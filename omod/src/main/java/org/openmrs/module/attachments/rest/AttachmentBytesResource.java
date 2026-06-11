@@ -99,7 +99,7 @@ public class AttachmentBytesResource extends BaseRestController {
 		}
 		return ext;
 	}
-
+	
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public void downloadFile(@RequestParam("path") String path, HttpServletResponse response) throws java.io.IOException {
 		java.io.File file = new java.io.File(path);
