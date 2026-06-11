@@ -2,52 +2,63 @@
 
 ## 1. Doel en scope
 
-Dit verslag legt vast in welke mate de **CI/CD-pipeline en repository-inrichting** van de **OpenMRS Attachments Module** voldoen aan een selectie van **NEN-7510 / ISO 27002 (Annex A)** controls, volgens de keten **control → maatregel → bewijs → status**.
+Dit verslag legt vast in welke mate de CI/CD-pipeline en repository-inrichting van de OpenMRS Attachments Module voldoen aan een selectie van NEN-7510 / ISO 27002 controls. De beoordeling volgt de keten: control, maatregel, bewijs en status.
 
-- **In scope:** de GitHub-repository, branch protection / ruleset, GitHub Actions-pipeline, security-tooling (Dependabot, CodeQL, code scanning), de OTAP-omgevingen via GitHub Environments (`dev`/`test`/`prod`) met Docker Compose, en de teamafspraken rond toegang en samenwerking.
-- **Out of scope:** de OpenMRS-productie-infrastructuur, de functionele werking van de module en organisatorische controls buiten de pipeline.
-- **Beoordeelde controls:** A.8.3, A.8.5, A.8.8, A.8.15, A.8.25, A.8.28, A.8.29, A.8.33.
-- **Bewijs** bestaat uit screenshots in `docs/auditrapport/bewijs/`, configuratiebestanden in de repository en schriftelijke teamverklaringen.
+- **Bronnen uit de projectmap:** `Documents/Sprints & Deliverables/Sprint1.docx`, `Documents/LU2/Projectopdracht.docx`, `Documents/Software security en compliance/Hardening  Secure CICD/Voorbereiding.docx` en de repositorybestanden in `openmrs-attatchments/`.
+- **In scope:** GitHub repository, branch protection / ruleset, GitHub Actions, Dependabot, CodeQL/code scanning, secret scanning, SBOM, GitHub Environments en Docker Compose configuratie.
+- **Out of scope:** echte productie-infrastructuur, organisatiebrede policies buiten deze repository en runtimebeheer van een productie-OpenMRS-installatie.
+- **Bewijs:** screenshots in `docs/auditrapport/bewijs/`, configuratiebestanden in de repository en teamafspraken.
 
-> **Let op:** dit verslag beoordeelt repository- en pipeline-maatregelen. De codegerichte beoordeling van A.8.3, A.8.5 en A.8.15 staat in de aparte gap-analyse (`01-gap-analyse.md`), die op een andere branch is uitgewerkt.
+De Sprint 1-opdracht vraagt om twee hoofdonderdelen: een gap-analyse op drie NEN-7510-controls en het inrichten van projectorganisatie/ontwikkelproces. Dit verslag gaat over het tweede onderdeel. De codegerichte gap-analyse staat in `01-gap-analyse.md`.
 
-## 2. Compliance-overzicht
+## 2. Afstemming met Sprint 1-opdracht
+
+| Sprint 1-eis | Invulling in deze repository | Bewijs | Status |
+|---|---|---|---|
+| Minimaal test- en productieomgevingen aanmaken | GitHub Environments `test` en `prod` bestaan. Daarnaast is ook `dev` ingericht. | `bewijs/environments.png` | Aanwezig |
+| Gescheiden configuratie | Docker Compose gebruikt een basisbestand en aparte overrides voor test en prod. Per omgeving wordt een eigen `.env` bestand gebruikt. | `docker/docker-compose.yml`; `docker/docker-compose.test.yml`; `docker/docker-compose.prod.yml`; `docker/.env.template` | Aanwezig |
+| Gescheiden secrets | Echte secrets worden niet in Git opgeslagen. De `.env.template` beschrijft welke secrets per omgeving nodig zijn. GitHub environment secrets zijn nog niet ingericht, omdat er nog geen echte secrets beschikbaar zijn. | `docker/.env.template`; README | Gedeeltelijk aanwezig |
+| GitHub Environments configureren | `dev`, `test` en `prod` zijn ingericht. Sprint 1 vereist minimaal test en productie. | `bewijs/environments.png` | Aanwezig |
+| Protection rules en approval-gates | `prod` heeft required reviewer, wait timer en protected branches/tags. | `bewijs/environment-rules.png` | Aanwezig |
+| NEN-7510-controls voor CI/CD inrichten | Branch protection, MFA, Dependabot, CodeQL/code scanning, secret scanning en SBOM zijn ingericht als CI/CD-maatregelen. | `bewijs/ruleset.png`; `bewijs/security.png`; `bewijs/dependabot.png`; `bewijs/codeql.png`; `bewijs/sbom-action-success.png` | Gedeeltelijk aanwezig |
+| README beschrijft hoe omgevingen zijn ingericht | README bevat `dev`, `test` en `prod` met bijbehorende Docker Compose-bestanden. | `README.md` | Aanwezig |
+| README beschrijft hoe testdata niet in productie terechtkomt | README verwijst naar testdatabeleid en beschrijft dat productiedata niet naar dev/test mag. | `README.md`; `03-testdatabeleid.md` | Aanwezig |
+| README beschrijft hoe een nieuwe ontwikkelaar met de omgeving werkt | README bevat stappen voor clone, Java/Maven/Docker, `.env` en Docker Compose. | `README.md` | Aanwezig |
+
+## 3. Compliance-overzicht
 
 | NEN-7510 control | Doel | Pipeline-/repositorymaatregel | Bewijs | Status |
 |---|---|---|---|---|
-| **A.8.3 Toegangsbeveiliging** | Toegang beperken en ongecontroleerde wijzigingen voorkomen. | Branch protection / ruleset op `main`: geen directe push, wijzigingen verplicht via pull request; iedereen werkt op een eigen branch. | `bewijs/ruleset.png`; teamafspraak werkwijze | Aanwezig |
-| **A.8.5 Authenticatie** | Betrouwbare verificatie van de gebruiker. | Elk teamlid gebruikt een persoonlijk GitHub-account met MFA ingeschakeld. | Teamverklaring MFA (tekstueel bewijs) | Aanwezig |
-| **A.8.8 Kwetsbaarheidsbeheer** | Kwetsbaarheden tijdig signaleren en verhelpen. | Dependabot voor Maven (wekelijks, update-PR's, alerts aan); SBOM-workflow (CycloneDX) die met succes draait en een artifact oplevert. | `.github/dependabot.yml`; `bewijs/dependabot.png`; `bewijs/security.png`; `.github/workflows/sbom.yml`; `bewijs/sbom-action-success.png`; `bewijs/sbom-artifact.png` | Aanwezig |
-| **A.8.15 Logging** | Gebeurtenissen vastleggen en bewaren. | GitHub biedt auditsporen via commits, pull requests, workflow-runs en security events. De gap-analyse toont dat module-logging gedeeltelijk aanwezig is maar risico's bevat (PII in applicatielogs, ontbrekende auditlogging bij het download-endpoint). | GitHub audit-/activiteitssporen; gap-analyse (aparte branch) | Gedeeltelijk aanwezig |
-| **A.8.25 Veilige ontwikkelcyclus** | Beveiliging inbedden in het hele ontwikkelproces. | Security checks in de repository (Security-tab bundelt Dependabot + code scanning); OTAP via GitHub Environments `dev`/`test`/`prod` met protection rules op `prod` (required reviewer, wait timer, protected branches/tags) en Docker Compose per omgeving. Een deployment-workflow die deze environments echt gebruikt, is nog niet bewezen. | `bewijs/security.png`; `bewijs/code-scanning.png`; `bewijs/environments.png`; `bewijs/environment-rules.png`; `docker/docker-compose*.yml` | Gedeeltelijk aanwezig |
-| **A.8.28 Veilig coderen** | Onveilige code vroegtijdig opsporen. | Statische codeanalyse via CodeQL en GitHub code scanning. | `bewijs/codeql.png`; `bewijs/code-scanning.png` | Aanwezig |
-| **A.8.29 Beveiligingstests** | Software toetsen op beveiligingseisen. | Dependency- en code-scanning fungeren als testpoort; een geautomatiseerde Maven-(security)testfase als CI-poort is nog niet aantoonbaar. | CodeQL / code scanning (zie A.8.28) | Gedeeltelijk aanwezig |
-| **A.8.33 Testdata** | Testdata veilig kiezen en beschermen; geen gevoelige (productie)data. | Beleid en controle op veilige, niet-gevoelige testdata in de pipeline. | Nog aan te vullen | Nog in te richten |
+| **A.8.3 Toegangsbeveiliging** | Ongecontroleerde wijzigingen voorkomen. | Ruleset `protect-main` is ingericht voor `main`. Wijzigingen lopen via branches en pull requests. | `bewijs/ruleset.png`; teamafspraak werkwijze | Aanwezig |
+| **A.8.5 Authenticatie** | Betrouwbare verificatie van gebruikers. | Teamleden gebruiken persoonlijke GitHub-accounts met MFA. | `bewijs/mfa-*.png`; teamverklaring | Aanwezig |
+| **A.8.8 Kwetsbaarheidsbeheer** | Kwetsbaarheden tijdig signaleren en opvolgen. | Dependabot alerts zijn actief voor Maven dependencies. SBOM wordt gegenereerd met CycloneDX en als artifact opgeslagen. | `.github/dependabot.yml`; `.github/workflows/sbom.yml`; `bewijs/dependabot.png`; `bewijs/sbom-action-success.png`; `bewijs/sbom-artifact.png` | Aanwezig |
+| **A.8.15 Logging** | Gebeurtenissen en wijzigingen navolgbaar maken. | GitHub bewaart auditsporen via commits, pull requests, workflow-runs en security findings. De codegerichte loggingrisico's staan in de gap-analyse. | GitHub activiteit; workflow-runs; `01-gap-analyse.md` | Gedeeltelijk aanwezig |
+| **A.8.25 Veilige ontwikkelcyclus** | Security in het ontwikkelproces opnemen. | GitHub Environments `dev`, `test` en `prod` bestaan. `prod` heeft protection rules met required reviewer, wait timer en protected branches/tags. Docker Compose heeft aparte overrides voor test en prod. GitHub environment secrets en deployment-workflow ontbreken nog. | `bewijs/environments.png`; `bewijs/environment-rules.png`; `docker/docker-compose*.yml` | Gedeeltelijk aanwezig |
+| **A.8.28 Veilig coderen** | Onveilige code vroeg detecteren. | CodeQL / code scanning is actief en uploadt scanresultaten. | `bewijs/codeql.png`; `bewijs/code-scanning.png`; `bewijs/security.png` | Aanwezig |
+| **A.8.29 Beveiligingstests** | Software toetsen op beveiligingseisen. | Dependabot, CodeQL en SBOM ondersteunen security testing. Open scanbevindingen worden meegenomen in de security backlog en Sprint 2 risk assessment. | `bewijs/dependabot.png`; `bewijs/code-scanning.png`; `bewijs/sbom-action-success.png` | Gedeeltelijk aanwezig |
+| **A.8.33 Testdata** | Voorkomen dat gevoelige productiegegevens in testomgevingen komen. | Testdatabeleid is vastgelegd. Docker-configuratie gebruikt gescheiden `.env` bestanden per omgeving. | `03-testdatabeleid.md`; `docker/.env.template` | Aanwezig |
 
-## 3. Belangrijkste nuances
+## 4. Belangrijkste bewijsstukken
 
-- **MFA (A.8.5)** is onderbouwd via een **teamverklaring** (tekstueel bewijs), bewust niet via persoonlijke screenshots, om accountgebonden gegevens niet onnodig vast te leggen. *Verklaring:* alle drie de teamleden gebruiken hun persoonlijke GitHub-account met MFA voor toegang tot de repository.
-- **Branch protection (A.8.3)** is zowel een teamafspraak ("geen directe push naar `main`, alles via pull request") als technisch afgedwongen via de ruleset op `main`.
-- **OTAP (A.8.25)** is **gedeeltelijk aanwezig**: de omgevingen `dev`/`test`/`prod` en de protection rules op `prod` bestaan, maar **environment secrets** en een **deployment-workflow die deze environments daadwerkelijk gebruikt, zijn nog niet bewezen**.
-- **SBOM (A.8.8)** is **aanwezig en bewezen**: de CycloneDX-workflow heeft met succes gedraaid (`bewijs/sbom-action-success.png`) en levert een SBOM-artifact op (`bewijs/sbom-artifact.png`).
-- **Logging (A.8.15)** verwijst voor de codegerichte beoordeling naar de gap-analyse op een andere branch; in dit pipeline-verslag is daarom geen directe link opgenomen om een kapotte verwijzing te voorkomen.
+- **GitHub Environments:** `dev`, `test` en `prod` zijn zichtbaar in `bewijs/environments.png`.
+- **Production protection:** `prod` heeft required reviewers, een wait timer en protected branches/tags in `bewijs/environment-rules.png`.
+- **Dependabot:** Maven dependency alerts zijn zichtbaar in `bewijs/dependabot.png`.
+- **Code scanning:** CodeQL is succesvol uitgevoerd en findings zijn zichtbaar in `bewijs/codeql.png` en `bewijs/code-scanning.png`.
+- **Secret scanning:** secret scanning alerts staan ingeschakeld volgens `bewijs/security.png`.
+- **SBOM:** de SBOM-workflow is succesvol uitgevoerd en levert een artifact op volgens `bewijs/sbom-action-success.png` en `bewijs/sbom-artifact.png`.
+- **Testdata:** het beleid staat in `03-testdatabeleid.md`.
 
-## 4. Open actiepunten
+## 5. Beperkingen en open punten
 
-| Actiepunt | Control(s) | Status |
+| Open punt | Control(s) | Status |
 |---|---|---|
-| Geautomatiseerde Maven-tests én securitytests als verplichte CI-poort aantoonbaar maken (workflow-run + groene checks op PR). | A.8.29 | Nog in te richten |
-| Environment secrets inrichten en een deployment-workflow koppelen aan de GitHub Environments, zodat OTAP aantoonbaar in een draaiende pipeline wordt gebruikt. | A.8.25 | Nog in te richten |
-| Logging-maatregel binnen de pipeline beschrijven en het bewijs (audit-/workflow-logs) vastleggen; PII-logging op moduleniveau adresseren. | A.8.15 | Nog in te richten |
-| Testdatabeleid opstellen en aantoonbaar maken dat geen gevoelige of productiedata in tests wordt gebruikt. | A.8.33 | Nog in te richten |
-| SBOM-artifact eventueel downloaden en als `docs/sbom.cdx.json` in versiebeheer opnemen. | A.8.8 | Nog aan te vullen |
+| GitHub environment secrets zijn nog niet ingericht, omdat er nog geen echte secrets beschikbaar zijn. | A.8.25 | Nog in te richten |
+| Er is nog geen deployment-workflow die expliciet `environment: test` of `environment: prod` gebruikt. | A.8.25 | Nog in te richten |
+| De Maven/securitytests zijn nog geen verplichte PR quality gate. | A.8.29 | Nog aan te scherpen |
+| Code scanning en Dependabot tonen open findings. Deze moeten worden beoordeeld in de security backlog en het risk assessment. | A.8.8, A.8.28, A.8.29 | Meenemen in Sprint 2 |
 
-## 5. Conclusie
+## 6. Conclusie
 
-De pipeline en repository-inrichting voldoen al aantoonbaar aan een belangrijk deel van de geselecteerde NEN-7510 controls:
+De repository-inrichting voldoet voor Sprint 1 aan een belangrijk deel van de gevraagde Secure SDLC-maatregelen. De projectorganisatie is ingericht met GitHub Environments, production protection rules, Dependabot, CodeQL/code scanning, secret scanning, SBOM-generatie en een testdatabeleid.
 
-- **Aanwezig:** toegangsbeveiliging (A.8.3), authenticatie (A.8.5), kwetsbaarheidsbeheer incl. bewezen SBOM (A.8.8) en veilig coderen (A.8.28).
-- **Gedeeltelijk aanwezig:** veilige ontwikkelcyclus (A.8.25) — OTAP staat, maar deployment-workflow/secrets ontbreken nog —, beveiligingstests (A.8.29) en logging (A.8.15) — die verbetering vraagt vanwege PII in logs en ontbrekende auditlogging bij download-acties (zie gap-analyse).
-- **Nog in te richten:** testdata (A.8.33).
-
-Dit verslag is een momentopname binnen Sprint 1. Na verdere uitwerking van de openstaande pipeline- en codeverbeteringen worden de actiepunten uit hoofdstuk 4 aangevuld met maatregelen en bewijs en wordt het overzicht geactualiseerd.
+De belangrijkste resterende beperking vanuit de Sprint 1-opdracht is dat echte GitHub environment secrets nog niet aantoonbaar zijn ingericht. Dat is bewust als open punt opgenomen, omdat er op dit moment nog geen echte secrets beschikbaar zijn. Een deployment-workflow is daarnaast nuttig voor verdere onderbouwing van de Secure SDLC, maar het ontbreken daarvan wordt meegenomen als vervolgpunt.
