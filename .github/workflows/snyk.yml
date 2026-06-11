@@ -1,0 +1,51 @@
+name: Snyk Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  snyk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+          cache: 'maven'
+
+      - name: Setup Snyk CLI
+        uses: snyk/actions/setup@master
+
+      - name: Resolve Maven dependencies
+        run: mvn clean install -DskipTests
+
+      - name: Snyk Open Source scan (SCA)
+        run: snyk test --all-projects --json-file-output=snyk-sca.json
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Code scan (SAST)
+        run: snyk code test --json-file-output=snyk-code.json
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-results
+          path: |
+            snyk-sca.json
+            snyk-code.json
+          if-no-files-found: warn
