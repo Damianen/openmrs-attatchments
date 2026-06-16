@@ -8,7 +8,7 @@ Dit document legt vast hoe dependency- en SBOM-findings worden opgevolgd. De too
 
 | Bron | Gebruik |
 |---|---|
-| `docs/auditrapport/bewijs/dependabot.png` | Screenshot met drie open Dependabot alerts |
+| `docs/auditrapport/bewijs/security/sbom-sca/dependabot-alerts-overview.png` | Screenshot met drie open Dependabot alerts |
 | `.github/dependabot.yml` | Wekelijkse Maven dependencycontrole |
 | `.github/workflows/snyk.yml` | Snyk Open Source scan voor SCA |
 | `.github/workflows/sbom.yml` | CycloneDX SBOM-generatie |

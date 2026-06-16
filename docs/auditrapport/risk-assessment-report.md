@@ -25,7 +25,7 @@ Dit rapport is gebaseerd op de documenten en bewijzen die al in het project aanw
 | `docs/auditrapport/05-security-backlog.md` | Security backlog en mitigaties |
 | `docs/auditrapport/06-sca-sbom-triage.md` | Dependency- en SBOM-triage |
 | `docs/auditrapport/false-positive-beleid.md` | Werkwijze voor false positives |
-| `docs/auditrapport/bewijs/` | Screenshots van pipeline- en repositorymaatregelen |
+| `docs/auditrapport/bewijs/` | Gestructureerde bewijsmap met security- en onderhoudbaarheidsbewijs |
 | `docs/architecture/` | C4-diagrammen voor systeem-, container- en componentniveau |
 
 ## 3. Managementsamenvatting
@@ -124,14 +124,14 @@ De hoogste risico's uit de bestaande analyse zijn:
 
 | Maatregel | Bewijs | Status |
 |---|---|---|
-| GitHub Environments `dev`, `test` en `prod` | `bewijs/environments.png` | Aanwezig |
-| Production protection rules | `bewijs/environment-rules.png` | Aanwezig |
-| Branch protection / ruleset | `bewijs/ruleset.png` | Aanwezig |
-| MFA voor teamleden | `bewijs/mfa-*.png` | Aanwezig |
-| Dependabot | `.github/dependabot.yml`, `bewijs/dependabot.png` | Aanwezig |
-| CodeQL/code scanning | `bewijs/codeql.png`, `bewijs/code-scanning.png` | Aanwezig |
-| Secret scanning | `bewijs/security.png` | Aanwezig |
-| SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/sbom-action-success.png`, `bewijs/sbom-artifact.png`, GitHub Actions run `Generate SBOM #15` | Aanwezig; artifact succesvol geupload |
+| GitHub Environments `dev`, `test` en `prod` | `bewijs/security/repository-access/github-environments.png` | Aanwezig |
+| Production protection rules | `bewijs/security/repository-access/production-environment-rules.png` | Aanwezig |
+| Branch protection / ruleset | `bewijs/security/repository-access/main-branch-ruleset.png` | Aanwezig |
+| MFA voor teamleden | `bewijs/security/repository-access/mfa-*.png` | Aanwezig |
+| Dependabot | `.github/dependabot.yml`, `bewijs/security/sbom-sca/dependabot-alerts-overview.png` | Aanwezig |
+| CodeQL/code scanning | `bewijs/security/scanning/codeql-workflow.png`, `bewijs/security/scanning/code-scanning-alerts.png` | Aanwezig |
+| Secret scanning | `bewijs/security/scanning/github-security-settings.png` | Aanwezig |
+| SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/security/sbom-sca/sbom-workflow-success.png`, `bewijs/security/sbom-sca/sbom-artifact-overview.png`, GitHub Actions run `Generate SBOM #15` | Aanwezig; artifact succesvol geupload |
 | Snyk SCA/SAST | `.github/workflows/snyk.yml`, GitHub Actions run `Snyk Security Scan #9` | Gedeeltelijk aanwezig; workflow draait, maar JSON-artifacts ontbreken nog |
 | Testdatabeleid | `docs/auditrapport/03-testdatabeleid.md` | Aanwezig |
 
