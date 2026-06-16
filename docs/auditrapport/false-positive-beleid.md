@@ -1,8 +1,8 @@
-# False-positivebeleid
+# False-positivebeleid en register
 
 ## Doel
 
-Dit beleid beschrijft hoe scanner-bevindingen (Snyk, CodeQL, Dependabot) worden getriageerd, wanneer een bevinding als false positive wordt aangemerkt en waar dit wordt vastgelegd. Zo blijft controleerbaar waarom een melding niet is opgevolgd en wie daarvoor heeft getekend.
+Dit document beschrijft hoe scanner-bevindingen (Snyk, CodeQL, Dependabot, SBOM/SCA) worden getriageerd, wanneer een bevinding als false positive wordt aangemerkt en waar dit wordt vastgelegd. Zo blijft controleerbaar waarom een melding niet is opgevolgd en wie daarvoor heeft getekend.
 
 ## Triageproces
 
@@ -22,18 +22,31 @@ Een bevinding wordt alleen als false positive aangemerkt als aan minstens een va
 
 Twijfelgevallen zijn geen false positive: die blijven open of worden als geaccepteerd risico met motivatie vastgelegd. "Te veel werk om op te lossen" is nooit een geldige reden.
 
+## Statuswaarden
+
+| Status | Betekenis |
+|---|---|
+| Open | Finding is gezien, maar nog niet volledig onderzocht. |
+| False positive | Finding is onderzocht en niet relevant of niet exploitable bevonden. |
+| Geaccepteerd restrisico | Finding is echt, maar tijdelijk of bewust geaccepteerd met reden. |
+| Opgelost | Finding is opgelost met codewijziging, configuratie of dependency-update. |
+| Niet geaccepteerd | Finding is echt en moet nog worden opgelost. |
+
 ## Register
 
-False positives worden gelogd in `docs/auditrapport/false-positive-register.md` met per bevinding de volgende kolommen:
+False positives en geaccepteerde risico's worden hieronder gelogd met per bevinding de tool, locatie, reden, bewijs en status.
 
-| Kolom | Inhoud |
-|---|---|
-| Finding-id | Het id van de bevinding in de tool (bijv. Snyk issue-id, CodeQL rule-id, CVE/GHSA-nummer). |
-| Tool | De scanner die de melding gaf (Snyk SCA, Snyk Code, CodeQL, Dependabot). |
-| Rationale | Concrete onderbouwing waarom de melding onterecht is, met verwijzing naar code of configuratie. |
-| Wie tekent af | Naam van de tweede beoordelaar plus datum van aftekening. |
+| ID | Datum | Tool | Finding | Locatie | Severity | Beoordeling | Reden | Bewijs | Status | Afgetekend door |
+|---|---|---|---|---|---|---|---|---|---|---|
+| - | - | - | Nog geen definitieve false positives geregistreerd | - | - | - | Open scanmeldingen moeten nog inhoudelijk worden beoordeeld | - | Open | - |
 
 Onderdrukking in de tool zelf (bijv. een `.snyk` policy-bestand of het dismissen van een code scanning alert in GitHub) gebeurt pas na aftekening en verwijst in de toelichting naar het register.
+
+## Huidige status
+
+Op dit moment zijn er nog geen scanmeldingen definitief als false positive beoordeeld.
+
+Open scanmeldingen uit CodeQL, Dependabot, Snyk of SBOM/SCA moeten eerst worden onderzocht. Daarna kunnen ze in het register hierboven worden opgenomen als false positive, geaccepteerd restrisico, opgelost of nog open.
 
 ## Herbeoordeling
 
