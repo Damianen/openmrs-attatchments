@@ -129,6 +129,27 @@ public class ObsByConceptListSearchHandlerTest extends MainResourceControllerTes
 		Assert.assertEquals(3, conceptList.size());
 	}
 	
+	@Test
+	public void parseConceptList_shouldTrimConceptsWithoutRegexSplitting() throws Exception {
+
+		String conceptListStr = "  " + CONCEPT_1_UUID + "  ,  " + CONCEPT_2_SOURCE + ":" + CONCEPT_2_NUMBER
+		        + "  ,  " + CONCEPT_3_UUID + "  ";
+
+		ConceptService conceptServiceMock = mock(ConceptService.class);
+
+		when(conceptServiceMock.getConceptByMapping(CONCEPT_2_NUMBER, CONCEPT_2_SOURCE))
+		        .thenReturn(conceptService.getConceptByUuid(CONCEPT_2_UUID));
+		when(conceptServiceMock.getConceptByUuid(CONCEPT_1_UUID))
+		        .thenReturn(conceptService.getConceptByUuid(CONCEPT_1_UUID));
+		when(conceptServiceMock.getConceptByUuid(CONCEPT_3_UUID))
+		        .thenReturn(conceptService.getConceptByUuid(CONCEPT_3_UUID));
+
+		ObsByConceptListSearchHandler searchHandler = new ObsByConceptListSearchHandler();
+		List<Concept> conceptList = searchHandler.parseConceptList(conceptListStr, conceptServiceMock);
+
+		Assert.assertEquals(3, conceptList.size());
+	}
+
 	@Override
 	public String getUuid() {
 		return "be48cdcb-6a76-47e3-9f2e-2635032f3a9a";
