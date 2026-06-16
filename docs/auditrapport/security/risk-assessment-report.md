@@ -132,7 +132,7 @@ De hoogste risico's uit de bestaande analyse zijn:
 | CodeQL/code scanning | `bewijs/scanning/codeql-workflow.png`, `bewijs/scanning/code-scanning-alerts.png` | Aanwezig |
 | Secret scanning | `bewijs/scanning/github-security-settings.png` | Aanwezig |
 | SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/sbom-sca/sbom-workflow-success.png`, `bewijs/sbom-sca/sbom-artifact-overview.png`, GitHub Actions run `Generate SBOM #15` | Aanwezig; artifact succesvol geupload |
-| Snyk SCA/SAST | `.github/workflows/snyk.yml`, `bewijs/sbom-sca/snyk-workflow-run-no-artifacts.png`, `bewijs/sbom-sca/snyk-artifact-upload-missing-files.png` | Workflowfix toegepast; nieuwe run nodig om JSON-artifacts te bewijzen |
+| Snyk SCA/SAST | `.github/workflows/snyk.yml`, `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png`, `bewijs/sbom-sca/snyk-artifact-upload-success.png` | Aanwezig; workflow draait en JSON-artifacts worden geupload |
 | Testdatabeleid | `03-testdatabeleid.md` | Aanwezig |
 
 ## 10. NEN-7510:2024-2 koppeling
@@ -186,7 +186,7 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 | SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime exposure controleren |
 | SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime/Tomcat-versie controleren |
 
-SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. De oude Snyk-run toont dat `snyk-sca.json` en `snyk-code.json` niet gevonden werden. De workflow is aangepast zodat deze JSON-bestanden voortaan altijd worden aangemaakt, maar dit moet nog met een nieuwe GitHub Actions-run worden bewezen.
+SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. Snyk-bewijs is aanwezig via `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` en `bewijs/sbom-sca/snyk-artifact-upload-success.png`, waarin te zien is dat de workflow succesvol draait en dat `snyk-sca.json` en `snyk-code.json` als artifact worden geupload.
 
 ## 14. Kostenraming
 
@@ -216,7 +216,7 @@ Securitytests zijn nog niet volledig ingericht als verplichte PR quality gate. D
 |---|---|---|
 | Maven testjob | Unit- en integratietests draaien bij pull requests | Moet nog gedaan worden |
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie en base64 parsing | Moet nog gedaan worden |
-| SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Workflowfix toegepast; nieuwe run nodig |
+| SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15` |
 | Required checks | Branch protection/ruleset verplicht de security/testchecks | Moet nog gedaan worden |
 | Fail policy | High/critical findings blokkeren merge of vragen expliciete triage | Moet nog gedaan worden |
@@ -232,7 +232,7 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest | Pentest afronden en daarna pas resultaten verwerken in een apart pentestdocument of als bijlage |
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
-| Dependencytriage | Open acties uit `06-sca-sbom-triage.md` afronden, vooral Snyk her-run en OpenMRS alertdetails vastleggen |
+| Dependencytriage | Open acties uit `06-sca-sbom-triage.md` afronden, vooral OpenMRS alertdetails vastleggen |
 | Securitytests | Tests toevoegen voor path traversal, uploadvalidatie, autorisatie en base64 parsing |
 | CI quality gate | Bepalen welke securitytests verplicht moeten slagen voordat een PR mag mergen |
 | Documentatie bijwerken | Oude verwijzingen naar raw `/download?path=` controleren en bijwerken naar de huidige situatie |
