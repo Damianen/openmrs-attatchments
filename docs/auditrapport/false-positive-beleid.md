@@ -38,13 +38,14 @@ False positives en geaccepteerde risico's worden hieronder gelogd met per bevind
 
 | ID | Datum | Tool | Finding | Locatie | Severity | Beoordeling | Reden | Bewijs | Status | Afgetekend door |
 |---|---|---|---|---|---|---|---|---|---|---|
-| - | - | - | Nog geen definitieve false positives geregistreerd | - | - | - | Open scanmeldingen moeten nog inhoudelijk worden beoordeeld | - | Open | - |
+| CS-001 | 2026-06-16 | CodeQL | Uncontrolled data used in path expression | `AttachmentBytesResource.java` | High | Echte finding | Raw `/download?path=` endpoint gebruikte user-controlled padinput. Endpoint is verwijderd in commit `e9e4aa0`. | PR #21 / commit `e9e4aa0` | Opgelost | - |
+| CS-002 | 2026-06-16 | CodeQL | Polynomial regular expression used on uncontrolled data | `ObsByConceptListSearchHandler.java` | High | Echte finding | Regexverwerking op user-controlled input is aangepast en er is testdekking toegevoegd in commit `e9e4aa0`. | PR #21 / commit `e9e4aa0` | Opgelost | - |
 
 Onderdrukking in de tool zelf (bijv. een `.snyk` policy-bestand of het dismissen van een code scanning alert in GitHub) gebeurt pas na aftekening en verwijst in de toelichting naar het register.
 
 ## Huidige status
 
-Op dit moment zijn er nog geen scanmeldingen definitief als false positive beoordeeld.
+Op dit moment zijn er nog geen scanmeldingen definitief als false positive beoordeeld. Er zijn wel CodeQL-findings geregistreerd die als echte bevinding zijn beoordeeld en opgelost.
 
 Open scanmeldingen uit CodeQL, Dependabot, Snyk of SBOM/SCA moeten eerst worden onderzocht. Daarna kunnen ze in het register hierboven worden opgenomen als false positive, geaccepteerd restrisico, opgelost of nog open.
 

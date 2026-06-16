@@ -23,6 +23,7 @@ Dit rapport is gebaseerd op de documenten en bewijzen die al in het project aanw
 | `docs/auditrapport/03-testdatabeleid.md` | Testdata-afspraken |
 | `docs/auditrapport/04-threat-model.md` | STRIDE threat model en risicomatrix |
 | `docs/auditrapport/05-security-backlog.md` | Security backlog en mitigaties |
+| `docs/auditrapport/06-sca-sbom-triage.md` | Dependency- en SBOM-triage |
 | `docs/auditrapport/false-positive-beleid.md` | Werkwijze voor false positives |
 | `docs/auditrapport/bewijs/` | Screenshots van pipeline- en repositorymaatregelen |
 | `docs/architecture/` | C4-diagrammen voor systeem-, container- en componentniveau |
@@ -146,7 +147,20 @@ De hoogste risico's uit de bestaande analyse zijn:
 | A.8.29 Security testing | Belangrijke security-eisen moeten met tests worden bewezen. | T01, T02, T03, T04, T09 |
 | A.8.33 Testdata | Testdata mag geen productiepatientdata bevatten. | Testdata-afspraken en pentestvoorbereiding |
 
-## 11. Mitigatieplan
+## 11. Kwetsbaarheden, mitigaties en NEN-7510
+
+| Kwetsbaarheid | Risico | Mitigatie | NEN-7510:2024-2 | Bewijs/status |
+|---|---|---|---|---|
+| Raw `/download?path=` file read | Onbevoegd lezen van serverbestanden of patientbestanden | Endpoint verwijderen of alleen veilige UUID-download toestaan | A.8.3, A.8.28, A.8.29 | In broncode gemitigeerd via commit `e9e4aa0`; documentatie/validatie moet nog bijgewerkt worden |
+| Path traversal in attachment handler | Bestand buiten attachment storage lezen of manipuleren | `Path.resolve().normalize()` gebruiken en controleren dat pad binnen attachment-root blijft | A.8.3, A.8.28, A.8.29 | Moet nog gedaan worden |
+| Upload allowlist bypass | Ongewenste bestandstypen uploaden of MIME-controle omzeilen | Veilige default allowlist instellen en extensie/MIME altijd valideren | A.8.28, A.8.29 | Moet nog gedaan worden |
+| Download-autorisatie niet expliciet bewezen | Onbevoegde gebruiker kan mogelijk attachment bytes downloaden | Expliciete privilegecheck of integratietest toevoegen | A.8.3, A.8.5, A.8.29 | Moet nog gedaan worden |
+| PII in logs | Patientnaam, geboortedatum of identifiers kunnen breder zichtbaar worden | Dataminimalisatie toepassen en auditlogging scheiden van applicatielogs | A.8.15, A.8.28 | Moet nog gedaan worden |
+| Malformed base64 upload | Onvoorspelbaar foutgedrag of denial of service | Aparte parser met duidelijke validatie en negatieve tests | A.8.28, A.8.29 | Moet nog gedaan worden |
+| Apache Tika XXE | Malicious bestand kan mogelijk XXE-triggeren bij bestandsdetectie/parsing | Tika upgraden naar gepatchte versie of compensating controls documenteren | A.8.8, A.8.28, A.8.29 | Open in `06-sca-sbom-triage.md` |
+| OpenMRS Core dependency alerts | Runtime kan kwetsbaar zijn voor path traversal of Zip Slip | Runtimeversie controleren, OpenMRS Core upgraden en endpoint-exposure beperken | A.8.8, A.8.25, A.8.29 | Open in `06-sca-sbom-triage.md` |
+
+## 12. Mitigatieplan
 
 | Backlog ID | Maatregel | Prioriteit | Status |
 |---|---|---|---|
@@ -161,7 +175,52 @@ De hoogste risico's uit de bestaande analyse zijn:
 | SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Moet nog gedaan worden |
 | SB-10 | Richt deployment secrets later veilig in via GitHub Environments | P3 | Moet nog gedaan worden |
 
-## 12. Moet nog gedaan worden
+## 13. SCA/SBOM opvolging
+
+De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige bekende open dependencyrisico's zijn:
+
+| ID | Finding | Package | Status |
+|---|---|---|---|
+| SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Niet geaccepteerd; upgrade of compensating controls nodig |
+| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime exposure controleren |
+| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime/Tomcat-versie controleren |
+
+## 14. Kostenraming
+
+Deze raming is een eerste inschatting in uren. Er is nog geen uurtarief vastgesteld, daarom is het budget als formule opgenomen.
+
+| Maatregel | Rollen | Inschatting | Budget |
+|---|---|---:|---|
+| SB-01 valideren en documentatie bijwerken | Developer + reviewer | 2-4 uur | Uren x uurtarief |
+| SB-02 path traversal fix in handlers + tests | Developer + reviewer | 6-8 uur | Uren x uurtarief |
+| SB-03 upload allowlist + MIME-validatie + tests | Developer + reviewer | 5-7 uur | Uren x uurtarief |
+| SB-04 download-autorisatie aantonen met tests | Developer + reviewer | 6-8 uur | Uren x uurtarief |
+| SB-05 PII uit logs verwijderen + logreview | Developer + reviewer | 3-5 uur | Uren x uurtarief |
+| SB-06 base64 parser + negatieve tests | Developer + reviewer | 5-7 uur | Uren x uurtarief |
+| SB-07 SCA/SBOM dependencytriage | Security reviewer + developer | 4-8 uur | Uren x uurtarief |
+| SB-08 securitytests opnemen in CI | Developer + reviewer | 6-10 uur | Uren x uurtarief |
+| SB-09 metadata-/patientbinding tests | Developer + reviewer | 4-6 uur | Uren x uurtarief |
+| SB-10 deployment secrets via environments | Developer + reviewer | 2-4 uur | Uren x uurtarief |
+| Pentest afronden en verwerken | Tester + reviewer | 6-10 uur | Uren x uurtarief |
+
+Totale eerste inschatting: **49-77 uur**, exclusief extra tijd voor onverwachte dependency-upgradeproblemen.
+
+## 15. Security tests als quality gate
+
+Securitytests zijn nog niet volledig ingericht als verplichte PR quality gate. De gewenste situatie is:
+
+| Stap | Gewenste inrichting | Status |
+|---|---|---|
+| Maven testjob | Unit- en integratietests draaien bij pull requests | Moet nog gedaan worden |
+| Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie en base64 parsing | Moet nog gedaan worden |
+| SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig in workflow |
+| SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig in workflow |
+| Required checks | Branch protection/ruleset verplicht de security/testchecks | Moet nog gedaan worden |
+| Fail policy | High/critical findings blokkeren merge of vragen expliciete triage | Moet nog gedaan worden |
+
+Zolang de required checks nog niet technisch zijn ingericht, blijft dit een open risico binnen de CI/CD-risk assessment.
+
+## 16. Moet nog gedaan worden
 
 De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inhoudelijk als bewijs opgevoerd:
 
@@ -170,13 +229,13 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest | Pentest afronden en daarna pas resultaten verwerken in een apart pentestdocument of als bijlage |
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
-| Dependencytriage | SCA/SBOM/Dependabot findings beoordelen op CVSS, runtime-aanwezigheid en impact |
+| Dependencytriage | Open acties uit `06-sca-sbom-triage.md` afronden |
 | Securitytests | Tests toevoegen voor path traversal, uploadvalidatie, autorisatie en base64 parsing |
 | CI quality gate | Bepalen welke securitytests verplicht moeten slagen voordat een PR mag mergen |
 | Documentatie bijwerken | Oude verwijzingen naar raw `/download?path=` controleren en bijwerken naar de huidige situatie |
-| Kosteninschatting | Uren/kosten per mitigatie bepalen zodra scope en taakverdeling duidelijk zijn |
+| Kosteninschatting | Uurtarief toevoegen zodra dit bekend is |
 
-## 13. Conclusie
+## 17. Conclusie
 
 De risk assessment laat zien dat de grootste risico's draaien om vertrouwelijkheid van patientattachments en patientmetadata. De basisdocumenten zijn aanwezig: assets, risicocriteria, threat model, pipeline-compliance, testdatabeleid en security backlog.
 
