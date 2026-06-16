@@ -183,8 +183,8 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 | ID | Finding | Package | Status |
 |---|---|---|---|
 | SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Niet geaccepteerd; Dependabot detailbewijs aanwezig; upgrade naar 3.2.2 testen |
-| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime exposure controleren |
-| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime/Tomcat-versie controleren |
+| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; overzichtsbewijs aanwezig; runtime exposure controleren |
+| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; overzichtsbewijs aanwezig; runtime/Tomcat-versie controleren |
 
 SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. Snyk-bewijs is aanwezig via `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` en `bewijs/sbom-sca/snyk-artifact-upload-success.png`, waarin te zien is dat de workflow succesvol draait en dat `snyk-sca.json` en `snyk-code.json` als artifact worden geupload.
 
@@ -232,7 +232,7 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest | Pentest afronden en daarna pas resultaten verwerken in een apart pentestdocument of als bijlage |
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
-| Dependencytriage | Open acties uit `06-sca-sbom-triage.md` afronden, vooral OpenMRS alertdetails vastleggen |
+| Dependencytriage | Open acties uit `06-sca-sbom-triage.md` afronden, vooral runtime exposure en upgradebesluiten voor OpenMRS alerts |
 | Securitytests | Tests toevoegen voor path traversal, uploadvalidatie, autorisatie en base64 parsing |
 | CI quality gate | Bepalen welke securitytests verplicht moeten slagen voordat een PR mag mergen |
 | Documentatie bijwerken | Oude verwijzingen naar raw `/download?path=` controleren en bijwerken naar de huidige situatie |

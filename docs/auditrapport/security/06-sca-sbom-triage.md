@@ -9,6 +9,8 @@ Dit document legt vast hoe dependency- en SBOM-findings worden opgevolgd. De too
 | Bron | Gebruik |
 |---|---|
 | `bewijs/sbom-sca/dependabot-alerts-overview.png` | Screenshot met drie open Dependabot alerts |
+| `bewijs/sbom-sca/dependabot-openmrs-module-upload-zip-slip-overview.png` | Overzichtsbewijs van de OpenMRS Module Upload Zip Slip alert |
+| `bewijs/sbom-sca/dependabot-openmrs-module-resources-path-traversal-overview.png` | Overzichtsbewijs van de OpenMRS ModuleResourcesServlet path traversal alert |
 | `.github/dependabot.yml` | Wekelijkse Maven dependencycontrole |
 | `.github/workflows/snyk.yml` | Snyk Open Source scan voor SCA |
 | `.github/workflows/sbom.yml` | CycloneDX SBOM-generatie |
@@ -37,8 +39,8 @@ Elke dependency-finding wordt beoordeeld op:
 | ID | Tool | Package | Finding | Severity | CVSS | Runtime gebruikt? | Reachable? | Besluit | Actie |
 |---|---|---|---|---|---:|---|---|---|---|
 | SCA-001 | Dependabot/Snyk | `org.apache.tika:tika-core` 2.9.2 | Apache Tika XXE vulnerability, CVE-2025-66516 / GHSA-f58c-gq56-vjjf | Critical | 10.0 | Ja. `AttachmentResource.java` gebruikt Tika voor MIME-detectie bij uploads. | Mogelijk. Uploads verwerken user-controlled bestanden, maar misbruik hangt af van bestandstype/parsergedrag. | Niet geaccepteerd | Upgrade naar `tika-core` 3.2.2 of hoger, of leg vast waarom dit binnen OpenMRS niet haalbaar is en welke compensating controls gelden. |
-| SCA-002 | Dependabot/Snyk | `org.openmrs.web:openmrs-web` 2.2.0 | OpenMRS Module Upload vulnerable to Path Traversal (Zip Slip), CVE-2026-40076 / GHSA-78fc-9688-w8xw | Critical in Dependabot screenshot; advisory noemt High | 8.7 | Ja, via OpenMRS Core runtime dependency met `provided` scope. | Te controleren. Relevant als module upload via REST/web admin bereikbaar is in de gebruikte OpenMRS runtime. | Open | Controleer runtimeconfiguratie, module upload exposure en upgradepad naar gepatchte OpenMRS Core-versie. |
-| SCA-003 | Dependabot/Snyk | `org.openmrs.web:openmrs-web` 2.2.0 | OpenMRS ModuleResourcesServlet path traversal to arbitrary file read, CVE-2026-40075 / GHSA-jjgj-cx3q-pw4w | High | 8.2 | Ja, via OpenMRS Core runtime dependency met `provided` scope. | Mogelijk. Advisory noemt extra afhankelijkheid van Tomcat-versie en module resource endpoint. | Open | Controleer Tomcat/OpenMRS runtimeversie en plan upgrade naar gepatchte OpenMRS Core-versie of documenteer compensating controls. |
+| SCA-002 | Dependabot/Snyk | `org.openmrs.web:openmrs-web` 2.2.0 | OpenMRS Module Upload vulnerable to Path Traversal (Zip Slip), CVE-2026-40076 / GHSA-78fc-9688-w8xw | Critical | 9.4 | Ja, via OpenMRS Core runtime dependency met `provided` scope. | Te controleren. Relevant als module upload via REST/web admin bereikbaar is in de gebruikte OpenMRS runtime. | Open | Controleer runtimeconfiguratie, module upload exposure en upgradepad. Screenshot: `bewijs/sbom-sca/dependabot-openmrs-module-upload-zip-slip-overview.png`. |
+| SCA-003 | Dependabot/Snyk | `org.openmrs.web:openmrs-web` 2.2.0 | OpenMRS ModuleResourcesServlet path traversal to arbitrary file read, CVE-2026-40075 / GHSA-jjgj-cx3q-pw4w | High | 8.2 | Ja, via OpenMRS Core runtime dependency met `provided` scope. | Mogelijk. Advisory noemt extra afhankelijkheid van Tomcat-versie en module resource endpoint. | Open | Controleer Tomcat/OpenMRS runtimeversie en plan upgrade of compensating controls. Screenshot: `bewijs/sbom-sca/dependabot-openmrs-module-resources-path-traversal-overview.png`. |
 
 ## 5. Samenvatting
 
@@ -57,7 +59,7 @@ De aangepaste workflow is opnieuw uitgevoerd in de pull request en is succesvol 
 
 | Onderdeel | Bewijs | Status | Vervolgactie |
 |---|---|---|---|
-| Dependabot alerts | `bewijs/sbom-sca/dependabot-alerts-overview.png` en Tika-detail screenshots | Aanwezig | Detailpagina's van de twee OpenMRS alerts ook vastleggen |
+| Dependabot alerts | `bewijs/sbom-sca/dependabot-alerts-overview.png`, Tika-detail screenshots en OpenMRS alert-overviews | Aanwezig | Detailpagina's blijven beschikbaar in GitHub Dependabot |
 | SBOM | `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png` | Aanwezig | Artifact downloaden/bewaren bij auditbewijs indien nodig |
 | Snyk SCA/SAST workflow | `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` | Aanwezig | Periodiek blijven draaien in CI |
 | Snyk JSON artifacts | `bewijs/sbom-sca/snyk-artifact-upload-success.png` toont dat `snyk-sca.json` en `snyk-code.json` worden geupload | Aanwezig | Artifact downloaden/bewaren indien nodig |
