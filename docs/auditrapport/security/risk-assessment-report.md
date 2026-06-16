@@ -17,15 +17,15 @@ Dit rapport is gebaseerd op de documenten en bewijzen die al in het project aanw
 
 | Bron | Waarvoor gebruikt |
 |---|---|
-| `docs/auditrapport/01-gap-analyse.md` | Eerste security gaps en codevoorbeelden |
-| `docs/auditrapport/02-pipeline-compliance.md` | CI/CD, GitHub securitymaatregelen en pipeline-status |
-| `docs/auditrapport/03-assets-risicocriteria.md` | Crown jewels, risicoscore en risicobereidheid |
-| `docs/auditrapport/03-testdatabeleid.md` | Testdata-afspraken |
-| `docs/auditrapport/04-threat-model.md` | STRIDE threat model en risicomatrix |
-| `docs/auditrapport/05-security-backlog.md` | Security backlog en mitigaties |
-| `docs/auditrapport/06-sca-sbom-triage.md` | Dependency- en SBOM-triage |
-| `docs/auditrapport/false-positive-beleid.md` | Werkwijze voor false positives |
-| `docs/auditrapport/bewijs/` | Gestructureerde bewijsmap met security- en onderhoudbaarheidsbewijs |
+| `01-gap-analyse.md` | Eerste security gaps en codevoorbeelden |
+| `02-pipeline-compliance.md` | CI/CD, GitHub securitymaatregelen en pipeline-status |
+| `03-assets-risicocriteria.md` | Crown jewels, risicoscore en risicobereidheid |
+| `03-testdatabeleid.md` | Testdata-afspraken |
+| `04-threat-model.md` | STRIDE threat model en risicomatrix |
+| `05-security-backlog.md` | Security backlog en mitigaties |
+| `06-sca-sbom-triage.md` | Dependency- en SBOM-triage |
+| `false-positive-beleid.md` | Werkwijze voor false positives |
+| `bewijs/` | Security-bewijs voor repository access, scanning en SBOM/SCA |
 | `docs/architecture/` | C4-diagrammen voor systeem-, container- en componentniveau |
 
 ## 3. Managementsamenvatting
@@ -124,16 +124,16 @@ De hoogste risico's uit de bestaande analyse zijn:
 
 | Maatregel | Bewijs | Status |
 |---|---|---|
-| GitHub Environments `dev`, `test` en `prod` | `bewijs/security/repository-access/github-environments.png` | Aanwezig |
-| Production protection rules | `bewijs/security/repository-access/production-environment-rules.png` | Aanwezig |
-| Branch protection / ruleset | `bewijs/security/repository-access/main-branch-ruleset.png` | Aanwezig |
-| MFA voor teamleden | `bewijs/security/repository-access/mfa-*.png` | Aanwezig |
-| Dependabot | `.github/dependabot.yml`, `bewijs/security/sbom-sca/dependabot-alerts-overview.png` | Aanwezig |
-| CodeQL/code scanning | `bewijs/security/scanning/codeql-workflow.png`, `bewijs/security/scanning/code-scanning-alerts.png` | Aanwezig |
-| Secret scanning | `bewijs/security/scanning/github-security-settings.png` | Aanwezig |
-| SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/security/sbom-sca/sbom-workflow-success.png`, `bewijs/security/sbom-sca/sbom-artifact-overview.png`, GitHub Actions run `Generate SBOM #15` | Aanwezig; artifact succesvol geupload |
-| Snyk SCA/SAST | `.github/workflows/snyk.yml`, GitHub Actions run `Snyk Security Scan #9` | Gedeeltelijk aanwezig; workflow draait, maar JSON-artifacts ontbreken nog |
-| Testdatabeleid | `docs/auditrapport/03-testdatabeleid.md` | Aanwezig |
+| GitHub Environments `dev`, `test` en `prod` | `bewijs/repository-access/github-environments.png` | Aanwezig |
+| Production protection rules | `bewijs/repository-access/production-environment-rules.png` | Aanwezig |
+| Branch protection / ruleset | `bewijs/repository-access/main-branch-ruleset.png` | Aanwezig |
+| MFA voor teamleden | `bewijs/repository-access/mfa-*.png` | Aanwezig |
+| Dependabot | `.github/dependabot.yml`, `bewijs/sbom-sca/dependabot-alerts-overview.png` | Aanwezig |
+| CodeQL/code scanning | `bewijs/scanning/codeql-workflow.png`, `bewijs/scanning/code-scanning-alerts.png` | Aanwezig |
+| Secret scanning | `bewijs/scanning/github-security-settings.png` | Aanwezig |
+| SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/sbom-sca/sbom-workflow-success.png`, `bewijs/sbom-sca/sbom-artifact-overview.png`, GitHub Actions run `Generate SBOM #15` | Aanwezig; artifact succesvol geupload |
+| Snyk SCA/SAST | `.github/workflows/snyk.yml`, `bewijs/sbom-sca/snyk-workflow-run-no-artifacts.png`, `bewijs/sbom-sca/snyk-artifact-upload-missing-files.png` | Gedeeltelijk aanwezig; workflow draait, maar JSON-artifacts ontbreken nog |
+| Testdatabeleid | `03-testdatabeleid.md` | Aanwezig |
 
 ## 10. NEN-7510:2024-2 koppeling
 
@@ -186,7 +186,7 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 | SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime exposure controleren |
 | SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime/Tomcat-versie controleren |
 
-SBOM-bewijs is aanwezig via `Generate SBOM #15`, waarin het artifact succesvol is geupload. Snyk-bewijs is nog niet volledig: `Snyk Security Scan #9` draait wel, maar de upload-stap meldt dat `snyk-sca.json` en `snyk-code.json` niet gevonden zijn. Dit blijft daarom een open vervolgpunt.
+SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. Snyk-bewijs is nog niet volledig: `bewijs/sbom-sca/snyk-workflow-run-no-artifacts.png` en `bewijs/sbom-sca/snyk-artifact-upload-missing-files.png` tonen dat de workflow draait, maar dat `snyk-sca.json` en `snyk-code.json` niet gevonden zijn. Dit blijft daarom een open vervolgpunt.
 
 ## 14. Kostenraming
 
