@@ -131,7 +131,8 @@ De hoogste risico's uit de bestaande analyse zijn:
 | Dependabot | `.github/dependabot.yml`, `bewijs/dependabot.png` | Aanwezig |
 | CodeQL/code scanning | `bewijs/codeql.png`, `bewijs/code-scanning.png` | Aanwezig |
 | Secret scanning | `bewijs/security.png` | Aanwezig |
-| SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/sbom-action-success.png`, `bewijs/sbom-artifact.png` | Aanwezig |
+| SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/sbom-action-success.png`, `bewijs/sbom-artifact.png`, GitHub Actions run `Generate SBOM #15` | Aanwezig; artifact succesvol geupload |
+| Snyk SCA/SAST | `.github/workflows/snyk.yml`, GitHub Actions run `Snyk Security Scan #9` | Gedeeltelijk aanwezig; workflow draait, maar JSON-artifacts ontbreken nog |
 | Testdatabeleid | `docs/auditrapport/03-testdatabeleid.md` | Aanwezig |
 
 ## 10. NEN-7510:2024-2 koppeling
@@ -181,9 +182,11 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 
 | ID | Finding | Package | Status |
 |---|---|---|---|
-| SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Niet geaccepteerd; upgrade of compensating controls nodig |
+| SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Niet geaccepteerd; Dependabot detailbewijs aanwezig; upgrade naar 3.2.2 testen |
 | SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime exposure controleren |
 | SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; runtime/Tomcat-versie controleren |
+
+SBOM-bewijs is aanwezig via `Generate SBOM #15`, waarin het artifact succesvol is geupload. Snyk-bewijs is nog niet volledig: `Snyk Security Scan #9` draait wel, maar de upload-stap meldt dat `snyk-sca.json` en `snyk-code.json` niet gevonden zijn. Dit blijft daarom een open vervolgpunt.
 
 ## 14. Kostenraming
 
@@ -213,8 +216,8 @@ Securitytests zijn nog niet volledig ingericht als verplichte PR quality gate. D
 |---|---|---|
 | Maven testjob | Unit- en integratietests draaien bij pull requests | Moet nog gedaan worden |
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie en base64 parsing | Moet nog gedaan worden |
-| SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig in workflow |
-| SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig in workflow |
+| SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Gedeeltelijk; workflow draait, maar JSON-artifacts ontbreken nog |
+| SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15` |
 | Required checks | Branch protection/ruleset verplicht de security/testchecks | Moet nog gedaan worden |
 | Fail policy | High/critical findings blokkeren merge of vragen expliciete triage | Moet nog gedaan worden |
 
@@ -229,7 +232,7 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest | Pentest afronden en daarna pas resultaten verwerken in een apart pentestdocument of als bijlage |
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
-| Dependencytriage | Open acties uit `06-sca-sbom-triage.md` afronden |
+| Dependencytriage | Open acties uit `06-sca-sbom-triage.md` afronden, vooral Snyk artifact fix en OpenMRS alertdetails vastleggen |
 | Securitytests | Tests toevoegen voor path traversal, uploadvalidatie, autorisatie en base64 parsing |
 | CI quality gate | Bepalen welke securitytests verplicht moeten slagen voordat een PR mag mergen |
 | Documentatie bijwerken | Oude verwijzingen naar raw `/download?path=` controleren en bijwerken naar de huidige situatie |

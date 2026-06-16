@@ -13,6 +13,8 @@ Dit document legt vast hoe dependency- en SBOM-findings worden opgevolgd. De too
 | `.github/workflows/snyk.yml` | Snyk Open Source scan voor SCA |
 | `.github/workflows/sbom.yml` | CycloneDX SBOM-generatie |
 | `pom.xml` en `omod/pom.xml` | Maven dependencyversies |
+| GitHub Actions run `Snyk Security Scan #9` | Bewijs dat de Snyk workflow draait, maar dat JSON-artifacts nog niet worden geupload |
+| GitHub Actions run `Generate SBOM #15` | Bewijs dat de SBOM workflow succesvol draait en een artifact uploadt |
 | GitHub Advisory Database | CVE/GHSA, severity, CVSS en patched versions |
 
 ## 3. Triagecriteria
@@ -41,18 +43,32 @@ De open dependencyrisico's zitten vooral in twee gebieden:
 - **Upload/file parsing:** Apache Tika wordt direct door de Attachments module gebruikt voor MIME-detectie. Dit maakt SCA-001 relevant voor de module zelf.
 - **OpenMRS Core runtime:** de OpenMRS alerts zitten in `openmrs-web`. Deze dependency heeft `provided` scope, maar is wel onderdeel van de runtime waarin de module draait. Daarom moeten runtimeversie, Tomcatversie en blootgestelde endpoints worden gecontroleerd.
 
-## 6. Vervolgacties
+De SBOM-workflow is opnieuw handmatig uitgevoerd in `Generate SBOM #15` en heeft succesvol een artifact geupload. Daarmee is het SBOM-bewijs aanwezig.
+
+De Snyk-workflow is opnieuw handmatig uitgevoerd in `Snyk Security Scan #9`. De workflow eindigde als `Success`, maar de annotations tonen dat de Snyk scanstappen met exit code 2 eindigden en dat `snyk-sca.json` en `snyk-code.json` niet zijn gevonden bij het uploaden van artifacts. Daardoor is de workflow-run wel bewijs dat de workflow draait, maar nog geen volledig bewijs van bewaarde Snyk scanresultaten.
+
+## 6. Tooling- en bewijsstatus
+
+| Onderdeel | Bewijs | Status | Vervolgactie |
+|---|---|---|---|
+| Dependabot alerts | Screenshot met 3 open alerts en detailpagina voor Apache Tika | Aanwezig | Detailpagina's van de twee OpenMRS alerts ook vastleggen |
+| SBOM | `Generate SBOM #15`, artifact `sbom.zip`, artifact upload succesvol | Aanwezig | Artifact downloaden/bewaren bij auditbewijs indien nodig |
+| Snyk SCA/SAST workflow | `Snyk Security Scan #9`, workflow handmatig gestart en job afgerond | Gedeeltelijk aanwezig | Workflow corrigeren zodat `snyk-sca.json` en `snyk-code.json` daadwerkelijk worden aangemaakt en geupload |
+| Snyk JSON artifacts | Upload-stap meldt: geen bestanden gevonden voor `snyk-sca.json` en `snyk-code.json` | Ontbreekt | Snyk outputpad of commando aanpassen en workflow opnieuw draaien |
+| Apache Tika Dependabot alert | Detailpagina toont package, vulnerable range, patched version, CVSS 10.0, CVE en GHSA | Aanwezig | Upgrade naar 3.2.2 testen |
+
+## 7. Vervolgacties
 
 | Actie | Eigenaar | Status |
 |---|---|---|
-| Snyk JSON-artifacts downloaden en bewaren als bewijs | Team | Moet nog gedaan worden |
-| CycloneDX SBOM-artifact bewaren bij auditbewijs | Team | Moet nog gedaan worden |
+| Snyk JSON-artifacts downloaden en bewaren als bewijs | Team | Geblokkeerd totdat workflow de JSON-bestanden correct uploadt |
+| CycloneDX SBOM-artifact bewaren bij auditbewijs | Team | Aanwezig in GitHub Actions; downloaden/bewaren indien nodig |
 | Tika upgrade-impact testen op Java 8 en OpenMRS modulecompatibiliteit | Developer | Moet nog gedaan worden |
 | OpenMRS Core upgradepad onderzoeken | Team | Moet nog gedaan worden |
 | Runtime Tomcatversie controleren | Team | Moet nog gedaan worden |
 | Besluiten welke findings opgelost, geaccepteerd of als false positive geregistreerd worden | Team | Moet nog gedaan worden |
 
-## 7. Advisory links
+## 8. Advisory links
 
 - Apache Tika XXE: https://github.com/advisories/GHSA-f58c-gq56-vjjf
 - OpenMRS Module Upload Zip Slip: https://github.com/openmrs/openmrs-core/security/advisories/GHSA-78fc-9688-w8xw
