@@ -99,16 +99,5 @@ public class AttachmentBytesResource extends BaseRestController {
 		}
 		return ext;
 	}
-
-	@RequestMapping(value = "/download", method = RequestMethod.GET)
-	public void downloadFile(@RequestParam("path") String path, HttpServletResponse response) throws java.io.IOException {
-		java.io.File file = new java.io.File(path);
-		java.io.FileInputStream fis = new java.io.FileInputStream(file);
-		byte[] buffer = new byte[1024];
-		int bytesRead;
-		while ((bytesRead = fis.read(buffer)) != -1) {
-			response.getOutputStream().write(buffer, 0, bytesRead);
-		}
-		fis.close();
-	}
+	
 }

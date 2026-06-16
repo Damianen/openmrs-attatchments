@@ -111,35 +111,51 @@ public class ObsByConceptListSearchHandler implements SearchHandler {
 	 */
 	protected List<Concept> parseConceptList(String conceptListStr, ConceptService conceptService) {
 		
-		List<String> conceptUuidsList = Arrays.asList(conceptListStr.split("\\s*,\\s*"));
-		
 		List<Concept> conceptList = new ArrayList<>();
 		
-		if (conceptUuidsList != null) {
-			for (String conceptStr : conceptUuidsList) {
-				
-				Concept concept = new Concept();
-				
-				// See if the concept is a mapping or a uuid
-				List<String> conceptMapping = Arrays.asList(conceptStr.split(":"));
-				
-				if (conceptMapping.size() > 1) {
-					// it is a mapping
-					concept = conceptService.getConceptByMapping(conceptMapping.get(1), conceptMapping.get(0));
-				} else {
-					// it is a uuid
-					concept = conceptService.getConceptByUuid(conceptStr);
-				}
-				
-				if (concept == null) {
-					log.warn("Concept \"" + conceptStr + "\" was not found. Ignoring it.");
-				} else {
-					conceptList.add(concept);
-				}
+		if (conceptListStr == null) {
+			return conceptList;
+		}
+
+		for (String conceptStr : splitConceptList(conceptListStr)) {
+			if (conceptStr.length() == 0) {
+				continue;
+			}
+
+			Concept concept = new Concept();
+
+			// See if the concept is a mapping or a uuid.
+			int mappingSeparator = conceptStr.indexOf(':');
+			if (mappingSeparator > 0 && mappingSeparator < conceptStr.length() - 1) {
+				// it is a mapping
+				concept = conceptService.getConceptByMapping(conceptStr.substring(mappingSeparator + 1),
+				    conceptStr.substring(0, mappingSeparator));
+			} else {
+				// it is a uuid
+				concept = conceptService.getConceptByUuid(conceptStr);
+			}
+
+			if (concept == null) {
+				log.warn("Concept \"" + conceptStr + "\" was not found. Ignoring it.");
+			} else {
+				conceptList.add(concept);
 			}
 		}
-		
+
 		return conceptList;
 		
+	}
+
+	private List<String> splitConceptList(String conceptListStr) {
+		List<String> concepts = new ArrayList<>();
+		int tokenStart = 0;
+		for (int i = 0; i < conceptListStr.length(); i++) {
+			if (conceptListStr.charAt(i) == ',') {
+				concepts.add(conceptListStr.substring(tokenStart, i).trim());
+				tokenStart = i + 1;
+			}
+		}
+		concepts.add(conceptListStr.substring(tokenStart).trim());
+		return concepts;
 	}
 }

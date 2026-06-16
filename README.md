@@ -1,116 +1,89 @@
 # OpenMRS Attachments Module (backend)
 
-The **Attachments** module brings a dedicated Java and web API to manage patient file attachments in OpenMRS.
+De **Attachments**-module voegt een Java- en REST-API aan OpenMRS toe voor het beheren van patiëntbijlagen. Bijlagen worden opgeslagen als [complex obs](https://wiki.openmrs.org/display/docs/Creating+Complex+Observations+and+Concepts) en op basis van hun MIME-type afgehandeld: afbeeldingen krijgen bijvoorbeeld een eigen handler die thumbnails meeslaat, en niet-herkende bestandstypen blijven generiek benaderbaar als gewone bestanden. De module is headless (alleen REST-endpoints) en vereist OpenMRS Core 2.3.0+ met de REST Web Services-module.
 
-It encompasses files uploaded elsewhere within OpenMRS as long as they are saved as [complex obs](https://wiki.openmrs.org/display/docs/Creating+Complex+Observations+and+Concepts).
+## Hoe de OTAP-omgevingen zijn ingericht
 
-In a nutshell the Attachments module is a **complex obs management API module** whose Java API is designed to be extended through new versions of the module to support further content types and concept complex coded obs.
+De omgevingen draaien via Docker Compose vanuit de map `docker/`. Het basisbestand `docker-compose.yml` beschrijft de dev-omgeving (OpenMRS + MariaDB 10.8); `docker-compose.test.yml` en `docker-compose.prod.yml` zijn override-bestanden die daar bovenop worden gelegd:
 
-## Content is handled based on its MIME type
-
-The Attachments module is designed to handle content or MIME types on an ad-hoc basis. For example, images with `image/*` content types are provided a custom handler that saves them alongside their thumbnails.
-
-## Not-yet-handled content types
-
-When a content type is not provided a bespoke handling mechanism, it can still be accessed generically as it would be on any drive or storage.
-
-## How to try it out
-
-Build the master branch and install the built OMOD to your instance running OpenMRS with the REST web-services module installed.
+| | dev | test | prod |
+|---|---|---|---|
+| Compose-bestanden | `docker-compose.yml` | `+ docker-compose.test.yml` | `+ docker-compose.prod.yml` |
+| Webpoort (standaard) | 8080 | 8081 (db extern op 3307) | 8080 |
+| `OMRS_DEV_DEBUG` | aan | uit | uit |
+| `MODULE_WEB_ADMIN` | aan | aan | **uit** |
+| Module-mount | lees/schrijf | lees/schrijf | **read-only** (`:ro`) |
+| Extra | — | — | `restart: always`, healthchecks op OpenMRS en db |
 
 ```bash
-git clone https://github.com/openmrs/openmrs-module-attachments
-cd openmrs-module-attachments
-mvn clean package
+cd docker
+
+# dev
+docker compose --env-file .env.dev up -d
+
+# test
+docker compose --env-file .env.test -f docker-compose.yml -f docker-compose.test.yml up -d
+
+# prod
+docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-### Runtime requirements and compatibility
+**Gescheiden configuratie per omgeving.** Elke omgeving heeft een eigen env-bestand (`.env.dev`, `.env.test`, `.env.prod`), aangemaakt vanaf de template `docker/.env.template`. Daarin staan o.a. de databasenaam, -gebruiker en -wachtwoorden én een eigen `COMPOSE_PROJECT_NAME`. Doordat Docker Compose containers en volumes per projectnaam namespacet, krijgt elke omgeving zo zijn eigen containers en eigen volumes (`<project>_db-data`, `<project>_openmrs-data`).
 
-- [Core 2.3.0 and beyond](https://github.com/openmrs/openmrs-core)
-- [OpenMRS REST Web Services module 2.33.0 and beyond](https://github.com/openmrs/openmrs-module-webservices.rest)
+**Secrets staan niet in git.** `.gitignore` sluit `docker/.env` en `docker/.env.*` uit; alleen de lege `docker/.env.template` wordt gecommit. Daarnaast zijn in GitHub de Environments `dev`/`test`/`prod` ingericht, met protection rules op `prod` (required reviewer, wait timer, protected branches/tags); zie [docs/auditrapport/02-pipeline-compliance.md](docs/auditrapport/02-pipeline-compliance.md).
 
-## LU2 projectomgeving
+## Hoe wordt voorkomen dat testdata in productie terechtkomt
 
-Voor het LU2 verbeteronderzoek is deze repository ingericht met gescheiden ontwikkel-, test- en productieomgevingen. De omgevingen worden gebruikt om het ontwikkelproces aantoonbaar veiliger te maken en om testdata, configuratie en productie-instellingen van elkaar te scheiden.
+Het uitgangspunt staat in het [testdatabeleid](docs/auditrapport/03-testdatabeleid.md): in `dev` en `test` wordt uitsluitend synthetische of geanonimiseerde testdata gebruikt, productiedata wordt nooit gekopieerd naar ontwikkel- of testomgevingen, en in `prod` wordt geen testdata geïmporteerd.
 
-### Omgevingen
+Technisch wordt dat als volgt afgedwongen:
 
-De repository gebruikt drie omgevingen:
+- **Aparte databases en volumes per omgeving.** Elke omgeving draait met een eigen `COMPOSE_PROJECT_NAME` en eigen `.env`, en heeft daardoor een eigen MariaDB-container met eigen `db-data`- en `openmrs-data`-volumes. Data uit dev of test kan dus niet "meeliften" naar de productiedatabase: het zijn fysiek gescheiden databases.
+- **Read-only module-mount in prod.** In `docker-compose.prod.yml` is de modulemap (`../omod/target/modules`) read-only gemount (`:ro`), zodat er vanuit de draaiende productiecontainer niets in de modulebestanden kan worden gewijzigd.
+- **`MODULE_WEB_ADMIN` uit in prod.** In productie staat de webbeheerinterface voor modules uit, zodat er niet via de OpenMRS-admin handmatig modules (en daarmee ongecontroleerde wijzigingen) in productie geladen kunnen worden. In dev en test staat deze aan voor ontwikkelgemak.
+- **Debug uit buiten dev.** `OMRS_DEV_DEBUG` staat alleen in dev aan; in test en prod is dit uitgeschakeld.
 
-| Omgeving | Doel | Configuratie |
-|---|---|---|
-| `dev` | Lokale ontwikkeling en experimenten | `docker/docker-compose.yml` met eigen `.env.dev` |
-| `test` | Controleren van wijzigingen voor oplevering | `docker/docker-compose.yml` + `docker/docker-compose.test.yml` met eigen `.env.test` |
-| `prod` | Productie-achtige omgeving met strengere regels | `docker/docker-compose.yml` + `docker/docker-compose.prod.yml` met eigen `.env.prod` |
+## Hoe een nieuwe ontwikkelaar de omgeving opzet
 
-In GitHub zijn de environments `dev`, `test` en `prod` aangemaakt. Voor `prod` zijn protection rules ingericht, waaronder een required reviewer, wait timer en beperking tot protected branches/tags. Bewijs hiervan staat in `docs/auditrapport/bewijs/`.
+Vereisten: git, JDK 8, Maven en Docker met het Compose-plugin.
 
-### Configuratie en secrets
+1. **Clone de repository:**
 
-Echte secrets worden niet in Git gezet. De template `docker/.env.template` laat zien welke variabelen per omgeving nodig zijn. Deze template wordt lokaal gekopieerd naar bijvoorbeeld `.env.dev`, `.env.test` of `.env.prod`.
+   ```bash
+   git clone git@github.com:Damianen/openmrs-attatchments.git
+   cd openmrs-attatchments
+   ```
 
-Voorbeelden van gescheiden instellingen zijn:
+2. **Bouw de module** (met JDK 8, net als de CI):
 
-- database naam;
-- database gebruiker;
-- database wachtwoord;
-- root wachtwoord;
-- poorten;
-- debug-instellingen.
+   ```bash
+   JAVA_HOME=/usr/lib/jvm/java-8-openjdk mvn clean package
+   ```
 
-Omdat echte GitHub environment secrets nog niet zijn ingericht, is dit als beperking opgenomen in het pipeline-complianceverslag. Zodra secrets beschikbaar zijn, moeten ze per environment apart worden toegevoegd.
+   Dit levert `omod/target/attachments-3.5.0.omod` op.
 
-### Testdata
+3. **Zet de omod in de mount-map.** Docker Compose mount `omod/target/modules/` als modulemap in de container, maar de Maven-build maakt die map niet zelf aan:
 
-Test- en ontwikkelomgevingen mogen alleen synthetische of geanonimiseerde testdata gebruiken. Productiedata mag niet naar `dev` of `test` worden gekopieerd. Testdata moet herkenbaar nep zijn en mag geen echte patientgegevens, medische documenten of identificerende gegevens bevatten.
+   ```bash
+   mkdir -p omod/target/modules
+   cp omod/target/*.omod omod/target/modules/
+   ```
 
-Het volledige testdatabeleid staat in `docs/auditrapport/03-testdatabeleid.md`.
+4. **Maak je dev-configuratie aan** vanaf de template en vul de waarden in:
 
-### Nieuwe developer starten
+   ```bash
+   cd docker
+   cp .env.template .env.dev
+   ```
 
-1. Clone de repository.
-2. Installeer Java 8, Maven en Docker.
-3. Kopieer `docker/.env.template` naar een eigen environmentbestand, bijvoorbeeld `.env.dev`.
-4. Vul alleen lokale testwaarden in, geen echte productiegegevens.
-5. Bouw de module:
+   Bijvoorbeeld: `COMPOSE_PROJECT_NAME=attachments-dev`, `OMRS_PORT=8080`, `OMRS_DEV_DEBUG=true` en zelfgekozen databasenaam/-gebruiker/-wachtwoorden. Commit dit bestand nooit.
 
-```bash
-mvn clean package
-```
+5. **Start de omgeving:**
 
-6. Start een lokale omgeving met Docker Compose vanuit de `docker` map:
+   ```bash
+   docker compose --env-file .env.dev up -d
+   ```
 
-```bash
-docker compose --env-file .env.dev -f docker-compose.yml up
-```
+6. **Log in.** De eerste start duurt enkele minuten (OpenMRS zet de database op). Ga daarna naar [http://localhost:8080/openmrs](http://localhost:8080/openmrs) en log in met de standaardgebruiker van de reference application: `admin` / `Admin123`. Controleer onder *Administration → Manage Modules* dat de Attachments-module geladen is.
 
-Voor de testomgeving kan de test-override worden gebruikt:
-
-```bash
-docker compose --env-file .env.test -f docker-compose.yml -f docker-compose.test.yml up
-```
-
-Voor productie-achtige controles kan de productie-override worden gebruikt:
-
-```bash
-docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up
-```
-
-### CI/CD en security checks
-
-De repository gebruikt GitHub security tooling om kwetsbaarheden vroeg te signaleren:
-
-- Dependabot voor Maven dependencies;
-- CodeQL / code scanning;
-- secret scanning;
-- een SBOM-workflow met CycloneDX.
-
-Bewijs van deze inrichting staat in `docs/auditrapport/bewijs/`. De resultaten worden meegenomen in de security backlog en het risk assessment.
-
-## Release notes
-
-### Version 3.0.0
-
-Breaking changes:
-
-- This module no longer supports the 2.x UI Framework functionalities. It has become headless with only REST endpoints for the management of attachments. For support of the removed features, use version 2.6.0 or below.
+Stoppen kan met `docker compose --env-file .env.dev down`.

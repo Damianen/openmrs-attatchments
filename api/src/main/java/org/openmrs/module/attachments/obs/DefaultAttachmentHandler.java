@@ -55,23 +55,24 @@ public class DefaultAttachmentHandler extends AbstractAttachmentHandler {
 		
 		return new ValueComplex(complexData.getInstructions(), complexData.getMimeType(), savedFileName);
 	}
-
-/**
- * Retrieves the raw bytes of an attachment file given its storage directory and file name.
- * Intended for administrative export and backup operations.
- *
- * @param attachmentDir base directory where attachments are stored
- * @param fileName      file name as supplied by the client request (not sanitized)
- * @return byte array of the file contents
- * @throws java.io.IOException if the file cannot be read
- */
-public byte[] getAttachmentByPath(String attachmentDir, String fileName) throws java.io.IOException {
-// Direct file system access - file name originates from client request, no path sanitization applied
-java.io.File file = new java.io.File(attachmentDir + File.separator + fileName);
-java.io.FileInputStream fis = new java.io.FileInputStream(file);
-byte[] data = new byte[(int) file.length()];
-fis.read(data);
-fis.close();
-return data;
-}
+	
+	/**
+	 * Retrieves the raw bytes of an attachment file given its storage directory and file name. Intended
+	 * for administrative export and backup operations.
+	 *
+	 * @param attachmentDir base directory where attachments are stored
+	 * @param fileName file name as supplied by the client request (not sanitized)
+	 * @return byte array of the file contents
+	 * @throws java.io.IOException if the file cannot be read
+	 */
+	public byte[] getAttachmentByPath(String attachmentDir, String fileName) throws java.io.IOException {
+		// Direct file system access - file name originates from client request, no path
+		// sanitization applied
+		java.io.File file = new java.io.File(attachmentDir + File.separator + fileName);
+		java.io.FileInputStream fis = new java.io.FileInputStream(file);
+		byte[] data = new byte[(int) file.length()];
+		fis.read(data);
+		fis.close();
+		return data;
+	}
 }
