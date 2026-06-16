@@ -49,7 +49,9 @@ De open dependencyrisico's zitten vooral in twee gebieden:
 
 De SBOM-workflow is opnieuw handmatig uitgevoerd in `Generate SBOM #15` en heeft succesvol een artifact geupload. Daarmee is het SBOM-bewijs aanwezig.
 
-De Snyk-workflow is opnieuw handmatig uitgevoerd in `Snyk Security Scan #9`. De workflow eindigde als `Success`, maar de annotations tonen dat de Snyk scanstappen met exit code 2 eindigden en dat `snyk-sca.json` en `snyk-code.json` niet zijn gevonden bij het uploaden van artifacts. Daardoor is de workflow-run wel bewijs dat de workflow draait, maar nog geen volledig bewijs van bewaarde Snyk scanresultaten.
+De Snyk-workflow is opnieuw handmatig uitgevoerd in `Snyk Security Scan #9`. De workflow eindigde als `Success`, maar de annotations tonen dat de Snyk scanstappen met exit code 2 eindigden en dat `snyk-sca.json` en `snyk-code.json` niet zijn gevonden bij het uploaden van artifacts. Daardoor is die workflow-run wel bewijs dat de workflow draait, maar nog geen volledig bewijs van bewaarde Snyk scanresultaten.
+
+De workflow is daarna aangepast zodat de Snyk-stappen altijd een JSON-bestand achterlaten. Als Snyk succesvol scanresultaten oplevert, worden die bestanden geupload. Als Snyk faalt voordat JSON wordt geschreven, wordt een kleine error-JSON aangemaakt zodat de artifact upload alsnog bewijsbaar is. Deze aanpassing moet nog opnieuw worden gevalideerd met een nieuwe GitHub Actions-run.
 
 ## 6. Tooling- en bewijsstatus
 
@@ -57,15 +59,15 @@ De Snyk-workflow is opnieuw handmatig uitgevoerd in `Snyk Security Scan #9`. De 
 |---|---|---|---|
 | Dependabot alerts | `bewijs/sbom-sca/dependabot-alerts-overview.png` en Tika-detail screenshots | Aanwezig | Detailpagina's van de twee OpenMRS alerts ook vastleggen |
 | SBOM | `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png` | Aanwezig | Artifact downloaden/bewaren bij auditbewijs indien nodig |
-| Snyk SCA/SAST workflow | `bewijs/sbom-sca/snyk-workflow-run-no-artifacts.png` | Gedeeltelijk aanwezig | Workflow corrigeren zodat `snyk-sca.json` en `snyk-code.json` daadwerkelijk worden aangemaakt en geupload |
-| Snyk JSON artifacts | `bewijs/sbom-sca/snyk-artifact-upload-missing-files.png` toont dat de JSON-bestanden ontbreken | Ontbreekt | Snyk outputpad of commando aanpassen en workflow opnieuw draaien |
+| Snyk SCA/SAST workflow | `bewijs/sbom-sca/snyk-workflow-run-no-artifacts.png` | Workflowfix toegepast; her-run nodig | Nieuwe GitHub Actions-run uitvoeren en controleren dat artifacts bestaan |
+| Snyk JSON artifacts | `bewijs/sbom-sca/snyk-artifact-upload-missing-files.png` toont oude fout: JSON-bestanden ontbraken | Nog te valideren | Nieuwe run moet `snyk-sca.json` en `snyk-code.json` uploaden |
 | Apache Tika Dependabot alert | `bewijs/sbom-sca/dependabot-tika-critical-alert-full.png` en `bewijs/sbom-sca/dependabot-tika-critical-alert-details.png` tonen package, vulnerable range, patched version, CVSS 10.0, CVE en GHSA | Aanwezig | Upgrade naar 3.2.2 testen |
 
 ## 7. Vervolgacties
 
 | Actie | Eigenaar | Status |
 |---|---|---|
-| Snyk JSON-artifacts downloaden en bewaren als bewijs | Team | Geblokkeerd totdat workflow de JSON-bestanden correct uploadt |
+| Snyk JSON-artifacts downloaden en bewaren als bewijs | Team | Workflowfix toegepast; nieuwe run en artifactcontrole nodig |
 | CycloneDX SBOM-artifact bewaren bij auditbewijs | Team | Aanwezig in GitHub Actions; downloaden/bewaren indien nodig |
 | Tika upgrade-impact testen op Java 8 en OpenMRS modulecompatibiliteit | Developer | Moet nog gedaan worden |
 | OpenMRS Core upgradepad onderzoeken | Team | Moet nog gedaan worden |
