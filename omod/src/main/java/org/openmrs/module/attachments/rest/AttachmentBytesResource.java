@@ -11,6 +11,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Obs;
+import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.annotation.OpenmrsProfile;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.attachments.AttachmentsConstants;
@@ -41,6 +42,10 @@ public class AttachmentBytesResource extends BaseRestController {
 	@RequestMapping(value = AttachmentsConstants.ATTACHMENT_BYTES_URI, method = RequestMethod.GET)
 	public void getFile(@PathVariable("uuid") String uuid, @RequestParam(required = false, value = "view") String view,
 	        HttpServletResponse response) throws ResponseException {
+		if (!Context.isAuthenticated() || !Context.hasPrivilege(AttachmentsConstants.VIEW_ATTACHMENTS)) {
+			throw new APIAuthenticationException("User is not allowed to view attachment bytes");
+		}
+		
 		AttachmentsContext context = Context.getRegisteredComponent(AttachmentsConstants.COMPONENT_ATT_CONTEXT,
 		    AttachmentsContext.class);
 		

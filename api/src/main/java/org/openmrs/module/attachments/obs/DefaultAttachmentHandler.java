@@ -1,6 +1,11 @@
 package org.openmrs.module.attachments.obs;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.openmrs.Obs;
 import org.openmrs.module.attachments.AttachmentsConstants;
@@ -61,18 +66,23 @@ public class DefaultAttachmentHandler extends AbstractAttachmentHandler {
 	 * for administrative export and backup operations.
 	 *
 	 * @param attachmentDir base directory where attachments are stored
-	 * @param fileName file name as supplied by the client request (not sanitized)
+	 * @param fileName file name as supplied by the client request
 	 * @return byte array of the file contents
-	 * @throws java.io.IOException if the file cannot be read
+	 * @throws IOException if the file cannot be read or resolves outside the attachment directory
 	 */
-	public byte[] getAttachmentByPath(String attachmentDir, String fileName) throws java.io.IOException {
-		// Direct file system access - file name originates from client request, no path
-		// sanitization applied
-		java.io.File file = new java.io.File(attachmentDir + File.separator + fileName);
-		java.io.FileInputStream fis = new java.io.FileInputStream(file);
-		byte[] data = new byte[(int) file.length()];
-		fis.read(data);
-		fis.close();
-		return data;
+	public byte[] getAttachmentByPath(String attachmentDir, String fileName) throws IOException {
+		try {
+			Path attachmentRoot = Paths.get(attachmentDir).toAbsolutePath().normalize();
+			Path attachmentPath = attachmentRoot.resolve(fileName).normalize();
+			
+			if (!attachmentPath.startsWith(attachmentRoot) || !Files.isRegularFile(attachmentPath)) {
+				throw new IOException("Invalid attachment path");
+			}
+			
+			return Files.readAllBytes(attachmentPath);
+		}
+		catch (InvalidPathException ex) {
+			throw new IOException("Invalid attachment path", ex);
+		}
 	}
 }

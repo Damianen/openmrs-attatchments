@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -364,9 +365,26 @@ public class AttachmentResource extends DataDelegatingCrudResource<Attachment> i
 		
 		public Base64MultipartFile(String base64Image, String fileName, String originalFileName) throws IOException {
 			String[] parts = base64Image.split(",", 2);
-			String contentType = parts[0].split(":")[1].split(";")[0].trim();
+			if (parts.length != 2) {
+				throw new IllegalRequestException("The base64 attachment content is not a valid data URI");
+			}
+			
+			String metadata = parts[0].trim();
+			if (!metadata.startsWith("data:") || !metadata.contains(";base64")) {
+				throw new IllegalRequestException("The base64 attachment content is not a valid data URI");
+			}
+			
+			String contentType = metadata.substring("data:".length(), metadata.indexOf(";")).trim();
+			if (StringUtils.isBlank(contentType)) {
+				throw new IllegalRequestException("The base64 attachment content type is missing");
+			}
+			
 			String contents = parts[1].trim();
-			byte[] decodedImage = Base64.decodeBase64(contents.getBytes());
+			if (StringUtils.isBlank(contents) || !Base64.isBase64(contents.getBytes(StandardCharsets.UTF_8))) {
+				throw new IllegalRequestException("The base64 attachment payload is not valid base64");
+			}
+			
+			byte[] decodedImage = Base64.decodeBase64(contents.getBytes(StandardCharsets.UTF_8));
 			
 			this.fileName = fileName;
 			this.originalFileName = originalFileName;

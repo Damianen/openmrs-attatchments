@@ -155,12 +155,12 @@ De hoogste risico's uit de bestaande analyse zijn:
 | Kwetsbaarheid | Risico | Mitigatie | NEN-7510:2024-2 | Bewijs/status |
 |---|---|---|---|---|
 | Raw `/download?path=` file read | Onbevoegd lezen van serverbestanden of patientbestanden | Endpoint verwijderen of alleen veilige UUID-download toestaan | A.8.3, A.8.28, A.8.29 | In broncode gemitigeerd via commit `e9e4aa0`; documentatie/validatie moet nog bijgewerkt worden |
-| Path traversal in attachment handler | Bestand buiten attachment storage lezen of manipuleren | `Path.resolve().normalize()` gebruiken en controleren dat pad binnen attachment-root blijft | A.8.3, A.8.28, A.8.29 | Moet nog gedaan worden |
+| Path traversal in attachment handler | Bestand buiten attachment storage lezen of manipuleren | `Path.resolve().normalize()` gebruiken en controleren dat pad binnen attachment-root blijft | A.8.3, A.8.28, A.8.29 | Gemitigeerd met root-directory check en regressietests |
 | Upload allowlist bypass | Ongewenste bestandstypen uploaden of MIME-controle omzeilen | Veilige default allowlist instellen en extensie/MIME altijd valideren | A.8.28, A.8.29 | Moet nog gedaan worden |
-| Download-autorisatie niet expliciet bewezen | Onbevoegde gebruiker kan mogelijk attachment bytes downloaden | Expliciete privilegecheck of integratietest toevoegen | A.8.3, A.8.5, A.8.29 | Moet nog gedaan worden |
+| Download-autorisatie niet expliciet bewezen | Onbevoegde gebruiker kan mogelijk attachment bytes downloaden | Expliciete privilegecheck of integratietest toevoegen | A.8.3, A.8.5, A.8.29 | Gedeeltelijk gemitigeerd met expliciete `View Attachments` check en regressietests |
 | PII in logs | Patientnaam, geboortedatum of identifiers kunnen breder zichtbaar worden | Dataminimalisatie toepassen en auditlogging scheiden van applicatielogs | A.8.15, A.8.28 | Moet nog gedaan worden |
-| Malformed base64 upload | Onvoorspelbaar foutgedrag of denial of service | Aparte parser met duidelijke validatie en negatieve tests | A.8.28, A.8.29 | Moet nog gedaan worden |
-| Apache Tika XXE | Malicious bestand kan mogelijk XXE-triggeren bij bestandsdetectie/parsing | Tika upgraden naar gepatchte versie of compensating controls documenteren | A.8.8, A.8.28, A.8.29 | Besluit: oplossen; upgrade-impact nog testen |
+| Malformed base64 upload | Onvoorspelbaar foutgedrag of denial of service | Aparte parser met duidelijke validatie en negatieve tests | A.8.28, A.8.29 | Gemitigeerd met data-URI/base64-validatie en regressietests |
+| Apache Tika XXE | Malicious bestand kan mogelijk XXE-triggeren bij bestandsdetectie/parsing | Tika upgraden naar gepatchte versie of compensating controls documenteren | A.8.8, A.8.28, A.8.29 | Besluit: oplossen; directe upgrade naar 3.2.2 getest maar geblokkeerd door Java 8 |
 | OpenMRS Core dependency alerts | Runtime kan kwetsbaar zijn voor path traversal of Zip Slip | Runtimeversie controleren, OpenMRS Core upgraden en endpoint-exposure beperken | A.8.8, A.8.25, A.8.29 | Besluit: open houden; runtime exposure nog controleren |
 
 ## 12. Mitigatieplan
@@ -168,11 +168,11 @@ De hoogste risico's uit de bestaande analyse zijn:
 | Backlog ID | Maatregel | Prioriteit | Status |
 |---|---|---|---|
 | SB-01 | Verwijder of beveilig raw `/download?path=` en gebruik veilige UUID-download | P0 | In broncode gemitigeerd; documentatie/validatie moet nog bijgewerkt worden |
-| SB-02 | Maak file access in handlers veilig met path normalization en root-check | P0 | Moet nog gedaan worden |
+| SB-02 | Maak file access in handlers veilig met path normalization en root-check | P0 | Gemitigeerd en getest |
 | SB-03 | Stel veilige upload allowlist in en valideer extensie en MIME altijd | P1 | Moet nog gedaan worden |
-| SB-04 | Bewijs download-autorisatie met tests of expliciete check | P1 | Moet nog gedaan worden |
+| SB-04 | Bewijs download-autorisatie met tests of expliciete check | P1 | Gedeeltelijk gemitigeerd en getest voor authenticatie/privilege |
 | SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Moet nog gedaan worden |
-| SB-06 | Maak base64 upload parsing robuust | P2 | Moet nog gedaan worden |
+| SB-06 | Maak base64 upload parsing robuust | P2 | Gemitigeerd en getest |
 | SB-07 | Triager dependency- en SBOM-findings | P2 | Besluiten afgerond; uitvoering/open runtimeonderzoek moet nog gedaan worden |
 | SB-08 | Maak securitytests betrouwbaar in CI | P2 | Gedeeltelijk afgerond; PR-checks draaien en failed checks blokkeren merge, extra security regressietests moeten nog worden toegevoegd |
 | SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Moet nog gedaan worden |
@@ -184,7 +184,7 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 
 | ID | Finding | Package | Status |
 |---|---|---|---|
-| SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Besluit: oplossen; Dependabot detailbewijs aanwezig; upgrade naar 3.2.2 testen |
+| SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Besluit: oplossen; upgrade naar 3.2.2 getest maar geblokkeerd door Java 8/class file 52.0 |
 | SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; overzichtsbewijs aanwezig; runtime exposure controleren |
 | SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; overzichtsbewijs aanwezig; runtime/Tomcat-versie controleren |
 
@@ -217,7 +217,7 @@ Securitytests zijn nog niet volledig ingericht als verplichte PR quality gate. D
 | Stap | Gewenste inrichting | Status |
 |---|---|---|
 | Maven testjob | Unit- en integratietests draaien bij pull requests | Moet nog gedaan worden |
-| Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie en base64 parsing | Moet nog gedaan worden |
+| Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie en base64 parsing | Gedeeltelijk aanwezig; path traversal, download-autorisatie en base64 parsing zijn toegevoegd |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
 | SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15` |
@@ -237,7 +237,7 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
 | Dependencytriage | Besluiten zijn genomen; Tika oplossen en OpenMRS alerts open houden totdat runtime exposure is gecontroleerd |
-| Securitytests | Tests toevoegen voor path traversal, uploadvalidatie, autorisatie en base64 parsing |
+| Securitytests | Uploadvalidatie/MIME-tests nog toevoegen; path traversal, download-autorisatie en base64 parsing zijn toegevoegd |
 | CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
 | Documentatie bijwerken | Oude verwijzingen naar raw `/download?path=` controleren en bijwerken naar de huidige situatie |
 

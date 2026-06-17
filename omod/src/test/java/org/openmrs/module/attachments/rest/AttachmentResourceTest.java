@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +27,7 @@ import org.openmrs.module.attachments.AttachmentsContext;
 import org.openmrs.module.attachments.AttachmentsService;
 import org.openmrs.module.attachments.obs.Attachment;
 import org.openmrs.module.attachments.obs.ComplexDataHelperImpl;
-import org.openmrs.obs.ComplexData;
+import org.openmrs.module.webservices.rest.web.response.IllegalRequestException;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -147,5 +148,40 @@ public class AttachmentResourceTest {
 		// Verify
 		verify(attachmentsService, times(1)).getAttachments(patient, false, true);
 		verifyNoMoreInteractions(attachmentsService);
+	}
+	
+	@Test
+	public void base64MultipartFile_shouldAcceptValidDataUri() throws Exception {
+		byte[] expectedBytes = "hello".getBytes("UTF-8");
+		String base64Content = "data:text/plain;base64," + Base64.encodeBase64String(expectedBytes);
+		
+		AttachmentResource.Base64MultipartFile file = new AttachmentResource.Base64MultipartFile(base64Content, "file",
+		        "file.txt");
+		
+		assertThat(file.getContentType(), equalTo("text/plain"));
+		assertThat(file.getOriginalFilename(), equalTo("file.txt"));
+		assertThat(file.getBytes(), equalTo(expectedBytes));
+	}
+	
+	@Test(expected = IllegalRequestException.class)
+	public void base64MultipartFile_shouldRejectMissingComma() throws Exception {
+		new AttachmentResource.Base64MultipartFile("data:text/plain;base64" + Base64.encodeBase64String("hello".getBytes()),
+		        "file", "file.txt");
+	}
+	
+	@Test(expected = IllegalRequestException.class)
+	public void base64MultipartFile_shouldRejectMissingContentType() throws Exception {
+		new AttachmentResource.Base64MultipartFile("data:;base64," + Base64.encodeBase64String("hello".getBytes()), "file",
+		        "file.txt");
+	}
+	
+	@Test(expected = IllegalRequestException.class)
+	public void base64MultipartFile_shouldRejectNonBase64Payload() throws Exception {
+		new AttachmentResource.Base64MultipartFile("data:text/plain;base64,not really base64!", "file", "file.txt");
+	}
+	
+	@Test(expected = IllegalRequestException.class)
+	public void base64MultipartFile_shouldRejectEmptyPayload() throws Exception {
+		new AttachmentResource.Base64MultipartFile("data:text/plain;base64,", "file", "file.txt");
 	}
 }
