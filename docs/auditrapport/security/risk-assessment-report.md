@@ -106,7 +106,7 @@ Voor patientdata geldt dat rode risico's niet onbehandeld mogen blijven. Oranje 
 | T06 | Malformed base64 upload kan onduidelijk foutgedrag geven | Beschikbaarheid, integriteit | 3 | 3 | 9 | Gemitigeerd en getest |
 | T07 | Legacy dependencies kunnen bekende CVE's bevatten | Vertrouwelijkheid, integriteit, beschikbaarheid | 3 | 4 | 12 | Gedeeltelijk afgerond; SCA-besluiten staan, runtimecontrole blijft open |
 | T08 | Deployment secrets en deployment workflow zijn nog niet volledig bewezen | Integriteit | 2 | 4 | 8 | Moet nog gedaan worden |
-| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Gedeeltelijk afgerond; PR-checks en reviewpolicy zijn bewezen |
+| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Maven Tests workflow is ingericht; required-check selectie volgt na eerste run |
 | T10 | Attachmentmetadata kan verkeerd gekoppeld worden aan patient/context | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Gemitigeerd en getest voor upload patient/visit/encounter mismatch |
 
 ## 8. Hoogste risico's
@@ -212,7 +212,7 @@ Totale eerste inschatting: **49-77 uur**, oftewel **EUR 2.940-4.620** bij EUR 60
 
 ## 15. Security tests als quality gate
 
-Securitytests zijn nog niet volledig ingericht als verplichte PR quality gate. De gewenste situatie is:
+Securitytests zijn technisch ingericht als PR workflow, maar de nieuwe Maven Tests check moet na de eerste GitHub Actions run nog als verplichte required check in de ruleset worden geselecteerd.
 
 | Stap | Gewenste inrichting | Status |
 |---|---|---|
