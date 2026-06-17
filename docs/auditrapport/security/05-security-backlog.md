@@ -47,11 +47,12 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Onderdeel | Invulling |
 |---|---|
 | Prioriteit | P0 |
-| Risico | `AttachmentBytesResource.downloadFile()` leest een user-controlled `path` direct met `new File(path)` en `FileInputStream`. |
+| Risico | `AttachmentBytesResource.downloadFile()` las eerder een user-controlled `path` direct met `new File(path)` en `FileInputStream`. |
 | Security requirement | De module mag nooit een willekeurig bestandspad uit een request gebruiken om bestanden te lezen. |
 | Maatregel | Verwijder het `/download?path=` endpoint of vervang het door downloaden via bestaande attachment/obs UUID. |
-| Acceptatiecriteria | Absolute paden worden geweigerd; `../` traversal wordt geweigerd; downloaden werkt alleen voor bestaande attachment UUID's; ongeautoriseerde gebruikers krijgen geen bytes terug. |
-| Testbewijs | Unit/integratietests voor absolute Windows- en Unix-paden, traversal, niet-bestaande bestanden en ongeautoriseerde requests. |
+| Acceptatiecriteria | Raw path download is niet meer aanwezig; downloaden werkt alleen voor bestaande attachment UUID's; ongeautoriseerde gebruikers krijgen geen bytes terug. |
+| Testbewijs | Codezoekactie toont geen `@RequestParam("path")` downloadpad meer; `AttachmentBytesResourceTest` bewijst dat unauthenticated en unauthorized gebruikers geen bytes krijgen. |
+| Status | Gemitigeerd en gevalideerd. |
 | NEN-7510 | A.8.3 Toegangsbeveiliging, A.8.28 Secure coding, A.8.29 Security testing. |
 
 ### SB-02 - Maak file access in handlers veilig
@@ -131,11 +132,11 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Onderdeel | Invulling |
 |---|---|
 | Prioriteit | P2 |
-| Risico | De reactor build is niet volledig stabiel, waardoor security regressietests niet betrouwbaar als quality gate kunnen werken. |
+| Risico | Zonder aparte Maven testjob zijn security regressietests niet zichtbaar genoeg als PR quality gate. |
 | Security requirement | Security tests moeten reproduceerbaar draaien in CI voordat wijzigingen worden gemerged. |
-| Maatregel | Fix de reactor build of splits CI in duidelijke jobs voor `api` en `omod`. Voeg daarna security regressietests toe voor download, upload en autorisatie. |
+| Maatregel | Splits CI in duidelijke jobs voor `api` en `omod` security regressietests. |
 | Acceptatiecriteria | CI draait groen voor relevante testjobs; falende securitytest blokkeert merge; testresultaat is zichtbaar in GitHub Actions. |
-| Testbewijs | Groene workflow-run, testrapport en PR-checks. |
+| Testbewijs | `.github/workflows/maven-tests.yml` draait `mvn -pl api test` en omod security regressietests op pull requests; required-check selectie volgt na eerste workflow-run. |
 | NEN-7510 | A.8.25 Secure SDLC, A.8.29 Security testing. |
 
 ### SB-09 - Versterk metadata- en patientbinding bij upload
@@ -145,9 +146,10 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Prioriteit | P2 |
 | Risico | Upload gebruikt patient, visit en encounter parameters. Fouten hierin kunnen attachments verkeerd koppelen. |
 | Security requirement | Een attachment mag alleen worden gekoppeld aan een geldige en consistente patient/visit/encounter combinatie. |
-| Maatregel | Behoud bestaande checks en voeg tests toe voor mismatch tussen patient, visit en encounter. Controleer ook edge cases met encounterless attachments. |
-| Acceptatiecriteria | Encounter hoort bij de opgegeven visit; patient/context is geldig; mismatch wordt geweigerd met duidelijke fout. |
-| Testbewijs | Integratietests voor geldige combinatie, mismatch en ontbrekende verplichte patientparameter. |
+| Maatregel | Behoud bestaande checks en voeg expliciete validatie toe voor mismatch tussen patient, visit en encounter. Controleer ook edge cases met encounterless attachments. |
+| Acceptatiecriteria | Encounter hoort bij de opgegeven visit; visit en encounter horen bij de opgegeven patient; mismatch wordt geweigerd met duidelijke fout. |
+| Testbewijs | `AttachmentRestControllerTest` bevat regressietests voor geldige combinatie, visit/encounter mismatch, patient/visit mismatch, patient/encounter mismatch en ontbrekende verplichte patientparameter. |
+| Status | Gemitigeerd en getest. |
 | NEN-7510 | A.8.3 Toegangsbeveiliging, A.8.28 Secure coding, A.8.29 Security testing. |
 
 ### SB-10 - Richt deployment secrets later veilig in
@@ -164,12 +166,12 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 
 ## 5. Aanbevolen volgorde
 
-1. SB-01: `/download?path=` verwijderen of beveiligen.
+1. SB-01: `/download?path=` verwijderd/gevalideerd houden.
 2. SB-02: file access in handlers veilig maken.
 3. SB-03: upload allowlist en MIME-validatie verbeteren.
 4. SB-04: download-autorisatie aantoonbaar testen.
-5. SB-08: CI/security tests betrouwbaar maken.
-6. SB-09 oppakken als tweede ronde codeverbetering; SB-05 en SB-06 zijn inmiddels gemitigeerd en getest.
+5. SB-08: Maven test workflow na eerste run als required check opnemen.
+6. SB-05, SB-06 en SB-09 zijn inmiddels gemitigeerd en getest.
 7. SB-07 blijven opvolgen via SBOM/SCA.
 8. SB-10 pas afronden wanneer echte secrets beschikbaar zijn.
 

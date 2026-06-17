@@ -33,7 +33,7 @@ Dit rapport is gebaseerd op de documenten en bewijzen die al in het project aanw
 
 De OpenMRS Attachments Module verwerkt medische bijlagen en bijbehorende patientmetadata. Daardoor ligt de belangrijkste security-impact bij vertrouwelijkheid: onbevoegde toegang tot attachment-inhoud, bestandsnamen, patientgegevens of logs kan leiden tot een datalek.
 
-De belangrijkste risico's zitten in file access, uploadvalidatie, download-autorisatie, logging en dependencybeheer. Een eerder CodeQL-risico rond een raw `/download?path=` downloadpad is in de huidige broncode niet meer teruggevonden en is gekoppeld aan commit `e9e4aa0 fix CodeQL security alerts`. De documentatie en validatie rondom dit punt moeten nog worden bijgewerkt.
+De belangrijkste risico's zitten in file access, uploadvalidatie, download-autorisatie, logging en dependencybeheer. Een eerder CodeQL-risico rond een raw `/download?path=` downloadpad is in de huidige broncode niet meer teruggevonden en is gekoppeld aan commit `e9e4aa0 fix CodeQL security alerts`. De huidige validatie gebruikt alleen UUID-gebaseerde attachment bytes en expliciete privilegechecks.
 
 De repository heeft al meerdere securitymaatregelen ingericht, zoals CodeQL/code scanning, Dependabot, SBOM-generatie, GitHub Environments, branch protection/rulesets, secret scanning en MFA-bewijs. Tegelijk blijven er nog open acties over, vooral rond pentest, validatie, false-positive registratie, dependencytriage en securitytests als quality gate.
 
@@ -98,7 +98,7 @@ Voor patientdata geldt dat rode risico's niet onbehandeld mogen blijven. Oranje 
 
 | ID | Risico | BIV-impact | Kans | Impact | Score | Status |
 |---|---|---|---:|---:|---:|---|
-| T01 | Raw `/download?path=` kon willekeurig bestandspad lezen | Vertrouwelijkheid | 4 | 5 | 20 | In broncode gemitigeerd; documentatie/validatie moet nog bijgewerkt worden |
+| T01 | Raw `/download?path=` kon willekeurig bestandspad lezen | Vertrouwelijkheid | 4 | 5 | 20 | Gemitigeerd en gevalideerd; raw path endpoint is niet meer aanwezig |
 | T02 | Path traversal via `DefaultAttachmentHandler.getAttachmentByPath` | Vertrouwelijkheid, integriteit | 4 | 4 | 16 | Gemitigeerd en getest |
 | T03 | Upload allowlist is te ruim als configuratie leeg is | Integriteit, beschikbaarheid | 4 | 4 | 16 | Gemitigeerd en getest |
 | T04 | Download-autorisatie moet expliciet bewezen worden | Vertrouwelijkheid | 3 | 5 | 15 | Gedeeltelijk gemitigeerd en getest met expliciete privilegecheck |
@@ -107,7 +107,7 @@ Voor patientdata geldt dat rode risico's niet onbehandeld mogen blijven. Oranje 
 | T07 | Legacy dependencies kunnen bekende CVE's bevatten | Vertrouwelijkheid, integriteit, beschikbaarheid | 3 | 4 | 12 | Gedeeltelijk afgerond; SCA-besluiten staan, runtimecontrole blijft open |
 | T08 | Deployment secrets en deployment workflow zijn nog niet volledig bewezen | Integriteit | 2 | 4 | 8 | Moet nog gedaan worden |
 | T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Gedeeltelijk afgerond; PR-checks en reviewpolicy zijn bewezen |
-| T10 | Attachmentmetadata kan verkeerd gekoppeld worden aan patient/context | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Moet nog gedaan worden |
+| T10 | Attachmentmetadata kan verkeerd gekoppeld worden aan patient/context | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Gemitigeerd en getest voor upload patient/visit/encounter mismatch |
 
 ## 8. Hoogste risico's
 
@@ -154,7 +154,7 @@ De hoogste risico's uit de bestaande analyse zijn:
 
 | Kwetsbaarheid | Risico | Mitigatie | NEN-7510:2024-2 | Bewijs/status |
 |---|---|---|---|---|
-| Raw `/download?path=` file read | Onbevoegd lezen van serverbestanden of patientbestanden | Endpoint verwijderen of alleen veilige UUID-download toestaan | A.8.3, A.8.28, A.8.29 | In broncode gemitigeerd via commit `e9e4aa0`; documentatie/validatie moet nog bijgewerkt worden |
+| Raw `/download?path=` file read | Onbevoegd lezen van serverbestanden of patientbestanden | Endpoint verwijderen of alleen veilige UUID-download toestaan | A.8.3, A.8.28, A.8.29 | Gemitigeerd via commit `e9e4aa0`; gevalideerd met codezoekactie en UUID-only bytes endpoint |
 | Path traversal in attachment handler | Bestand buiten attachment storage lezen of manipuleren | `Path.resolve().normalize()` gebruiken en controleren dat pad binnen attachment-root blijft | A.8.3, A.8.28, A.8.29 | Gemitigeerd met root-directory check en regressietests |
 | Upload allowlist bypass | Ongewenste bestandstypen uploaden of MIME-controle omzeilen | Veilige default allowlist instellen en extensie/MIME altijd valideren | A.8.28, A.8.29 | Gemitigeerd met veilige default allowlist, verplichte extensie/MIME-validatie en regressietests |
 | Download-autorisatie niet expliciet bewezen | Onbevoegde gebruiker kan mogelijk attachment bytes downloaden | Expliciete privilegecheck of integratietest toevoegen | A.8.3, A.8.5, A.8.29 | Gedeeltelijk gemitigeerd met expliciete `View Attachments` check en regressietests |
@@ -167,15 +167,15 @@ De hoogste risico's uit de bestaande analyse zijn:
 
 | Backlog ID | Maatregel | Prioriteit | Status |
 |---|---|---|---|
-| SB-01 | Verwijder of beveilig raw `/download?path=` en gebruik veilige UUID-download | P0 | In broncode gemitigeerd; documentatie/validatie moet nog bijgewerkt worden |
+| SB-01 | Verwijder of beveilig raw `/download?path=` en gebruik veilige UUID-download | P0 | Gemitigeerd en gevalideerd |
 | SB-02 | Maak file access in handlers veilig met path normalization en root-check | P0 | Gemitigeerd en getest |
 | SB-03 | Stel veilige upload allowlist in en valideer extensie en MIME altijd | P1 | Gemitigeerd en getest |
 | SB-04 | Bewijs download-autorisatie met tests of expliciete check | P1 | Gedeeltelijk gemitigeerd en getest voor authenticatie/privilege |
 | SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Gemitigeerd en getest voor attachment-fetch logging |
 | SB-06 | Maak base64 upload parsing robuust | P2 | Gemitigeerd en getest |
 | SB-07 | Triager dependency- en SBOM-findings | P2 | Besluiten afgerond; uitvoering/open runtimeonderzoek moet nog gedaan worden |
-| SB-08 | Maak securitytests betrouwbaar in CI | P2 | Gedeeltelijk afgerond; PR-checks draaien en failed checks blokkeren merge, extra security regressietests moeten nog worden toegevoegd |
-| SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Moet nog gedaan worden |
+| SB-08 | Maak securitytests betrouwbaar in CI | P2 | Maven test workflow toegevoegd; na eerste PR-run als required check opnemen in ruleset |
+| SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Gemitigeerd en getest |
 | SB-10 | Richt deployment secrets later veilig in via GitHub Environments | P3 | Moet nog gedaan worden |
 
 ## 13. SCA/SBOM opvolging
@@ -216,12 +216,12 @@ Securitytests zijn nog niet volledig ingericht als verplichte PR quality gate. D
 
 | Stap | Gewenste inrichting | Status |
 |---|---|---|
-| Maven testjob | Unit- en integratietests draaien bij pull requests | Moet nog gedaan worden |
-| Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie en base64 parsing | Gedeeltelijk aanwezig; path traversal, uploadvalidatie/MIME, download-autorisatie en base64 parsing zijn toegevoegd |
+| Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht in `.github/workflows/maven-tests.yml`; eerste GitHub Actions run en required-check selectie volgen na push |
+| Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie, patientbinding en base64 parsing | Aanwezig voor path traversal, uploadvalidatie/MIME, download-autorisatie, patient/visit/encounter mismatch en base64 parsing |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
 | SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15` |
-| Required checks | Branch protection/ruleset verplicht de security/testchecks | Aanwezig volgens ingestelde PR/ruleset-werkwijze; `protect-main` ruleset en groene PR-checks zijn als bewijs aanwezig |
+| Required checks | Branch protection/ruleset verplicht de security/testchecks | Aanwezig voor bestaande PR-checks; nieuwe Maven testjob moet na eerste run nog als required check worden geselecteerd |
 | Review policy | Pull requests naar `main` hebben minimaal 1 review nodig | Aanwezig; `bewijs/repository-access/dependabot-prs-review-required.png` toont dependency PR's met `Review required` |
 | Fail policy | Foutieve checks blokkeren merge; high/critical findings vragen expliciete triage | Aanwezig voor PR-checks; inhoudelijke triage staat in `06-sca-sbom-triage.md` |
 
@@ -237,9 +237,8 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
 | Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts open houden totdat runtime exposure is gecontroleerd |
-| Securitytests | Path traversal, uploadvalidatie/MIME, download-autorisatie en base64 parsing zijn toegevoegd; CI-testjob als aparte verplichte Maven-testcheck kan nog sterker worden ingericht |
+| Securitytests | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding en base64 parsing zijn toegevoegd; Maven workflow is ingericht en moet na eerste run nog als required check worden geselecteerd |
 | CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
-| Documentatie bijwerken | Oude verwijzingen naar raw `/download?path=` controleren en bijwerken naar de huidige situatie |
 
 ## 17. Conclusie
 

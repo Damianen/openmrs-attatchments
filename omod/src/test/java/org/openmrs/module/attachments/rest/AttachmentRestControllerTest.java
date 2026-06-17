@@ -394,6 +394,46 @@ public class AttachmentRestControllerTest extends MainResourceControllerTest {
 	}
 	
 	@Test(expected = IllegalRequestException.class)
+	public void postAttachment_shouldThrowWhenVisitDoesNotBelongToPatient() throws Exception {
+		// Setup
+		String fileCaption = "Test file caption";
+		String fileName = "testFile1.dat";
+		Patient patient = Context.getPatientService().getPatient(6);
+		Visit visit = Context.getVisitService().getVisit(1);
+
+		MockMultipartHttpServletRequest request = newUploadRequest(getURI());
+		MockMultipartFile file = new MockMultipartFile("file", fileName, "application/octet-stream", randomData);
+
+		request.addFile(file);
+		request.addParameter("patient", patient.getUuid());
+		request.addParameter("visit", visit.getUuid());
+		request.addParameter("fileCaption", fileCaption);
+
+		// Replay
+		SimpleObject response = deserialize(handle(request));
+	}
+
+	@Test(expected = IllegalRequestException.class)
+	public void postAttachment_shouldThrowWhenEncounterDoesNotBelongToPatient() throws Exception {
+		// Setup
+		String fileCaption = "Test file caption";
+		String fileName = "testFile1.dat";
+		Patient patient = Context.getPatientService().getPatient(6);
+		Encounter encounter = testHelper.getTestEncounter();
+
+		MockMultipartHttpServletRequest request = newUploadRequest(getURI());
+		MockMultipartFile file = new MockMultipartFile("file", fileName, "application/octet-stream", randomData);
+
+		request.addFile(file);
+		request.addParameter("patient", patient.getUuid());
+		request.addParameter("encounter", encounter.getUuid());
+		request.addParameter("fileCaption", fileCaption);
+
+		// Replay
+		SimpleObject response = deserialize(handle(request));
+	}
+
+	@Test(expected = IllegalRequestException.class)
 	public void postAttachment_shouldNotUploadFileAboveSizeLimit() throws Exception {
 		// Setup
 		String fileCaption = "Test file caption";

@@ -88,7 +88,7 @@ Risicobereidheid: voor patientdata accepteren we geen onbehandelde P0-risico's. 
 
 | ID | Onderdeel | Threat | STRIDE | BIV-impact | Kans | Impact | Score | Bewijs | Maatregel |
 |---|---|---|---|---|---:|---:|---:|---|---|
-| T01 | Download endpoint | Een gebruiker kan via `/download?path=` een willekeurig bestandspad laten lezen. | Information Disclosure, Elevation of Privilege | Vertrouwelijkheid | 4 | 5 | 20 | `AttachmentBytesResource.java` regels 104-106 gebruikt requestparameter direct in `new File(path)` en `FileInputStream`. | Endpoint verwijderen of alleen downloaden via attachment UUID; pad normaliseren; autorisatie expliciet testen. |
+| T01 | Download endpoint | Een gebruiker kon via `/download?path=` een willekeurig bestandspad laten lezen. | Information Disclosure, Elevation of Privilege | Vertrouwelijkheid | 4 | 5 | 20 | Raw path endpoint is niet meer aanwezig in de huidige `AttachmentBytesResource`; downloaden loopt via attachment UUID. | Gemitigeerd en gevalideerd; UUID-only download en privilegecheck blijven behouden. |
 | T02 | File storage handler | Path traversal via bestandsnaam in `getAttachmentByPath`. | Information Disclosure, Tampering | Vertrouwelijkheid, integriteit | 4 | 4 | 16 | `DefaultAttachmentHandler.java` regels 68-71 combineert directory en bestandsnaam zonder sanitization. | Gebruik veilige `Path.resolve().normalize()` en weiger paden buiten attachment-root. |
 | T03 | Uploadvalidatie | Ongewenste bestandstypen kunnen worden geupload als allowlist leeg is. | Tampering, Denial of Service | Integriteit, beschikbaarheid | 4 | 4 | 16 | `allowedFileExtensions` heeft nu een veilige default en `AttachmentResource.java` valideert extensie/MIME altijd. | Gedeeltelijk gemitigeerd; regressietests bewijzen lege allowlist, verboden extensie en MIME mismatch. |
 | T04 | Download-autorisatie | Download via obs UUID vertrouwt vooral op OpenMRS framework en heeft geen duidelijke extra module-check. | Elevation of Privilege, Information Disclosure | Vertrouwelijkheid | 3 | 5 | 15 | `AttachmentBytesResource.java` regels 41-58 haalt complex obs op en schrijft bytes terug; expliciete `View Attachments` check is niet zichtbaar in methode. | Expliciete privilege/patient access check of integratietest die framework-check bewijst. |
@@ -96,8 +96,8 @@ Risicobereidheid: voor patientdata accepteren we geen onbehandelde P0-risico's. 
 | T06 | Base64 upload | Malformed base64 input kan exceptions of onduidelijk foutgedrag veroorzaken. | Denial of Service, Tampering | Beschikbaarheid, integriteit | 3 | 3 | 9 | `AttachmentResource.java` regels 113-119 en 365-370 parsen base64 met vaste aannames over data URI structuur. | Aparte parser maken met duidelijke validatie en foutmeldingen; negatieve tests toevoegen. |
 | T07 | Dependencies | Verouderde dependencies kunnen bekende CVE's bevatten. | Elevation of Privilege, Tampering, DoS | Integriteit, beschikbaarheid, vertrouwelijkheid | 3 | 4 | 12 | Verdiepend onderzoek noemt o.a. Spring 4.1.4, Jackson 2.9, Log4j 1.2.15, Commons FileUpload 1.3.3 en XStream 1.4.3. | SBOM + SCA blijven draaien; findings triageren op runtime/reachability; upgrades plannen. |
 | T08 | CI/CD secrets en deployment | Secrets en deployment naar echte environments zijn nog niet volledig bewezen. | Spoofing, Tampering | Integriteit | 2 | 4 | 8 | Het pipelineverslag noemt dat environment secrets en deployment workflow nog open staan. | Secrets pas toevoegen via GitHub Environments; prod approvals behouden; geen secrets in repo. |
-| T09 | Build/testbaarheid | Reactor build is niet volledig stabiel, waardoor security tests minder betrouwbaar worden. | Tampering, Repudiation | Integriteit, traceerbaarheid | 3 | 3 | 9 | Verdiepend onderzoek: API-tests slagen, maar OMOD-fase faalt bij reactor build. | CI job splitsen of build fixen; security regressietests verplicht maken. |
-| T10 | Database metadata | Verkeerde of gemanipuleerde metadata kan attachment aan verkeerde patient/context koppelen. | Tampering | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Uploadflow gebruikt patient, visit en encounter parameters in `AttachmentResource.java`. | Strikte parameterchecks behouden en uitbreiden met tests voor patient/encounter/visit mismatch. |
+| T09 | Build/testbaarheid | Security tests moeten betrouwbaar in CI draaien. | Tampering, Repudiation | Integriteit, traceerbaarheid | 3 | 3 | 9 | `.github/workflows/maven-tests.yml` draait API-tests en omod security regressietests op pull requests. | Na eerste workflow-run de Maven testjob als required check opnemen in de ruleset. |
+| T10 | Database metadata | Verkeerde of gemanipuleerde metadata kan attachment aan verkeerde patient/context koppelen. | Tampering | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Uploadflow valideert patient, visit en encounter samenhang in `AttachmentResource.java`. | Gemitigeerd met checks en regressietests voor patient/visit/encounter mismatch. |
 
 ## 7. STRIDE samenvatting
 
@@ -106,7 +106,7 @@ Risicobereidheid: voor patientdata accepteren we geen onbehandelde P0-risico's. 
 | Spoofing | Ja, vooral via CI/CD en authenticatiecontext. | Onbewezen deployment/secrets kunnen later risico geven. |
 | Tampering | Ja. | Upload van ongewenste bestanden of manipulatie van attachment metadata. |
 | Repudiation | Ja. | Kritieke downloads hebben nog geen duidelijke auditlogging. |
-| Information Disclosure | Ja, dit is de grootste categorie. | `/download?path=`, path traversal en PII in logs. |
+| Information Disclosure | Ja, dit is de grootste categorie. | Historische `/download?path=` finding, path traversal en PII in logs. |
 | Denial of Service | Ja. | Grote/malformed uploads, kwetsbare dependencies of instabiele build/tests. |
 | Elevation of Privilege | Ja. | Download zonder expliciete module-check of misbruik van file access. |
 
@@ -116,7 +116,7 @@ De hoogste risico's zijn:
 
 1. **T01 - Arbitrary file read via `/download?path=`**
    - Score: 20
-   - Reden: directe impact op vertrouwelijkheid van patientdata en mogelijk ook secrets/configuratiebestanden.
+   - Reden: directe impact op vertrouwelijkheid van patientdata en mogelijk ook secrets/configuratiebestanden. Deze finding is in de huidige code gemitigeerd doordat het raw path endpoint niet meer aanwezig is.
 
 2. **T02 - Path traversal in `DefaultAttachmentHandler`**
    - Score: 16
@@ -155,14 +155,14 @@ Voor een bow-tie analyse is T01 de beste kandidaat, omdat er een duidelijke oorz
 
 | Prioriteit | Backlog item | Komt uit threat |
 |---|---|---|
-| P0 | Verwijder of beveilig `/download?path=` en gebruik alleen UUID-gebaseerde download. | T01 |
+| P0 | `/download?path=` is verwijderd/gevalideerd; behoud alleen UUID-gebaseerde download. | T01 |
 | P0 | Maak file access veilig met path normalization en root-directory controle. | T02 |
 | P1 | Stel veilige upload allowlist in en valideer extensie en MIME altijd. | T03 |
 | P1 | Voeg autorisatietests toe voor downloaden zonder `View Attachments` privilege. | T04 |
 | P2 | PII uit attachment-fetch logs verwijderd; veilige auditlogging verder uitbreiden waar nodig. | T05 |
 | P2 | Maak een veilige parser voor base64 uploads. | T06 |
 | P2 | Triager SCA/SBOM findings op runtime en exploitability. | T07 |
-| P2 | Maak CI build en security testfase betrouwbaar. | T09 |
+| P2 | Maven test workflow draait API- en omod securitytests op PR's; required-check selectie volgt na eerste run. | T09 |
 | P3 | Werk deployment secrets later uit zodra echte secrets beschikbaar zijn. | T08 |
 
 ## 11. Conclusie

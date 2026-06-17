@@ -21,7 +21,7 @@ De crown-jewels-tabel is opgesteld op basis van een broncode-analyse van de modu
 | **MIME-type / content-family** (onthult type medisch document) | PHI (metadata) | `ValueComplex.java:23,51-55`; `AttachmentComplexDataImpl.java:13,46-52`; `Content-Family`-header `AttachmentBytesResource.java:69` | Vertrouwelijkheid |
 | **Provider-identiteit** (zorgverlener gekoppeld aan encounter) | PII | `AttachmentResource.java:110`; `AttachmentsContext.java:178-180` | Vertrouwelijkheid |
 | **Audit-/wijzigingsmetadata** (creator, changedBy, voidedBy, voidReason, dateCreated) | PII | `Attachment.java:44-52,91-97` | Integriteit |
-| **Arbitraire serverbestandsinhoud** via ongesaneerde padparameter — kan PHI-bestanden én credential/config-bestanden van de server blootstellen | PHI / credential (blootstellingsvector) | `AttachmentBytesResource.java:103-113` (`downloadFile`, `path`-param); `DefaultAttachmentHandler.java:68-76` (`getAttachmentByPath`, ongesaneerde `fileName`) | Vertrouwelijkheid |
+| **Arbitraire serverbestandsinhoud** via ongesaneerde padparameter — kan PHI-bestanden en credential/config-bestanden van de server blootstellen | PHI / credential (blootstellingsvector) | Historische raw `/download?path=` finding is niet meer aanwezig; resterende file-access validatie zit bij `DefaultAttachmentHandler.getAttachmentByPath` | Vertrouwelijkheid |
 
 **Toelichting bij enkele rijen:**
 

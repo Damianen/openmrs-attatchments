@@ -150,12 +150,7 @@ public class AttachmentResource extends DataDelegatingCrudResource<Attachment> i
 			instructions = ValueComplex.INSTRUCTIONS_DEFAULT;
 
 		// Verify Parameters
-		if (encounter != null && visit != null) {
-			if (encounter.getVisit() != visit) {
-				throw new IllegalRequestException(
-				        "The specified encounter does not belong to the provided visit, upload aborted.");
-			}
-		}
+		validateUploadContext(patient, visit, encounter);
 
 		// Verify Content Type
 		validateFileContentType(file, fileExtension, allowedExtensionPolicy);
@@ -185,6 +180,33 @@ public class AttachmentResource extends DataDelegatingCrudResource<Attachment> i
 
 		return ConversionUtil.convertToRepresentation(obs,
 		    new CustomRepresentation(AttachmentsConstants.REPRESENTATION_OBS));
+	}
+
+	static void validateUploadContext(Patient patient, Visit visit, Encounter encounter) {
+		if (visit != null && !isSamePatient(patient, visit.getPatient())) {
+			throw new IllegalRequestException(
+			        "The specified visit does not belong to the provided patient, upload aborted.");
+		}
+
+		if (encounter != null && !isSamePatient(patient, encounter.getPatient())) {
+			throw new IllegalRequestException(
+			        "The specified encounter does not belong to the provided patient, upload aborted.");
+		}
+
+		if (encounter != null && visit != null && !isSameVisit(visit, encounter.getVisit())) {
+			throw new IllegalRequestException(
+			        "The specified encounter does not belong to the provided visit, upload aborted.");
+		}
+	}
+
+	private static boolean isSamePatient(Patient expected, Patient actual) {
+		return expected != null && actual != null && expected.getPatientId() != null
+		        && expected.getPatientId().equals(actual.getPatientId());
+	}
+
+	private static boolean isSameVisit(Visit expected, Visit actual) {
+		return expected != null && actual != null && expected.getVisitId() != null
+		        && expected.getVisitId().equals(actual.getVisitId());
 	}
 
 	static String getFileExtension(String fileName) {
