@@ -40,7 +40,7 @@ Elke dependency-finding wordt beoordeeld op:
 
 | ID | Tool | Package | Finding | Severity | CVSS | Runtime gebruikt? | Reachable? | Besluit | Actie |
 |---|---|---|---|---|---:|---|---|---|---|
-| SCA-001 | Dependabot/Snyk | `org.apache.tika:tika-core` 2.9.2 | Apache Tika XXE vulnerability, CVE-2025-66516 / GHSA-f58c-gq56-vjjf | Critical | 10.0 | Ja. `AttachmentResource.java` gebruikt Tika voor MIME-detectie bij uploads. | Mogelijk. Uploads verwerken user-controlled bestanden, maar misbruik hangt af van bestandstype/parsergedrag. | Oplossen | Upgrade naar `tika-core` 3.2.2 is getest, maar blokkeert op Java 8: Tika 3.2.2 gebruikt class file version 55.0 en het project compileert op Java 8/class file 52.0. Remediatie vraagt daarom Java/OpenMRS-upgradepad of een Java 8-compatibele gepatchte versie. |
+| SCA-001 | Dependabot/Snyk | `org.apache.tika:tika-core` 2.9.2 | Apache Tika XXE vulnerability, CVE-2025-66516 / GHSA-f58c-gq56-vjjf | Critical | 10.0 | Ja. `AttachmentResource.java` gebruikt Tika voor MIME-detectie bij uploads. | Mogelijk. Uploads verwerken user-controlled bestanden, maar misbruik hangt af van bestandstype/parsergedrag. | Oplossen | Upgrade naar `tika-core` 3.2.2 is getest, maar blokkeert op Java 8: Tika 3.2.2 gebruikt class file version 55.0 en het project compileert op Java 8/class file 52.0. Als tijdelijke compensating control is de uploadflow aangescherpt met een veilige default allowlist en verplichte MIME/extensievalidatie. |
 | SCA-002 | Dependabot/Snyk | `org.openmrs.web:openmrs-web` 2.2.0 | OpenMRS Module Upload vulnerable to Path Traversal (Zip Slip), CVE-2026-40076 / GHSA-78fc-9688-w8xw | Critical | 9.4 | Ja, via OpenMRS Core runtime dependency met `provided` scope. | Te controleren. Relevant als module upload via REST/web admin bereikbaar is in de gebruikte OpenMRS runtime. | Open houden | Niet als false positive sluiten. Runtimeconfiguratie, module upload exposure en upgradepad controleren. Screenshot: `bewijs/sbom-sca/dependabot-openmrs-module-upload-zip-slip-overview.png`. |
 | SCA-003 | Dependabot/Snyk | `org.openmrs.web:openmrs-web` 2.2.0 | OpenMRS ModuleResourcesServlet path traversal to arbitrary file read, CVE-2026-40075 / GHSA-jjgj-cx3q-pw4w | High | 8.2 | Ja, via OpenMRS Core runtime dependency met `provided` scope. | Mogelijk. Advisory noemt extra afhankelijkheid van Tomcat-versie en module resource endpoint. | Open houden | Niet als false positive sluiten. Tomcat/OpenMRS runtimeversie controleren en daarna upgrade of compensating controls bepalen. Screenshot: `bewijs/sbom-sca/dependabot-openmrs-module-resources-path-traversal-overview.png`. |
 
@@ -48,7 +48,7 @@ Elke dependency-finding wordt beoordeeld op:
 
 | ID | Besluit | Onderbouwing | Vervolg |
 |---|---|---|---|
-| SCA-001 | Oplossen | Tika wordt direct gebruikt in de uploadflow voor MIME-detectie. Daardoor is de finding relevant voor de Attachments module zelf. Een directe upgrade naar `tika-core` 3.2.2 is geprobeerd, maar faalt op Java 8 door class file version 55.0. | Java/OpenMRS-upgradepad bepalen of een Java 8-compatibele gepatchte Tika-versie vinden. |
+| SCA-001 | Oplossen | Tika wordt direct gebruikt in de uploadflow voor MIME-detectie. Daardoor is de finding relevant voor de Attachments module zelf. Een directe upgrade naar `tika-core` 3.2.2 is geprobeerd, maar faalt op Java 8 door class file version 55.0. | Java/OpenMRS-upgradepad bepalen of een Java 8-compatibele gepatchte Tika-versie vinden. Tot die tijd beperken veilige upload allowlist en verplichte MIME/extensievalidatie de aanvalsvector. |
 | SCA-002 | Open houden | De kwetsbaarheid zit in de OpenMRS runtime dependency `openmrs-web`. Door `provided` scope staat de dependency niet als eigen modulecode in het artifact, maar de runtime kan wel kwetsbaar zijn. | Controleren of module upload endpoints bereikbaar zijn en welk OpenMRS Core upgradepad mogelijk is. |
 | SCA-003 | Open houden | De kwetsbaarheid zit ook in `openmrs-web` en hangt af van runtimegedrag, module resource endpoints en Tomcat/OpenMRS-versie. | Runtimeversie controleren en daarna kiezen tussen upgrade, extra hardening of een onderbouwde acceptatie. |
 
@@ -59,13 +59,27 @@ De open dependencyrisico's zitten vooral in twee gebieden:
 - **Upload/file parsing:** Apache Tika wordt direct door de Attachments module gebruikt voor MIME-detectie. Dit maakt SCA-001 relevant voor de module zelf.
 - **OpenMRS Core runtime:** de OpenMRS alerts zitten in `openmrs-web`. Deze dependency heeft `provided` scope, maar is wel onderdeel van de runtime waarin de module draait. Daarom moeten runtimeversie, Tomcatversie en blootgestelde endpoints worden gecontroleerd.
 
+Voor SCA-001 is daarnaast een tijdelijke technische beperking toegevoegd in de uploadflow. Als `allowedFileExtensions` leeg is, gebruikt de module nu een veilige default allowlist (`pdf,png,jpg,jpeg`). Extensiecontrole en Tika-MIME-controle worden altijd uitgevoerd. Regressietests bewijzen dat een lege allowlist niet meer alles toestaat, dat `.exe` wordt geweigerd en dat MIME mismatch wordt geblokkeerd.
+
 De SBOM-workflow is opnieuw handmatig uitgevoerd in `Generate SBOM #15` en heeft succesvol een artifact geupload. Daarmee is het SBOM-bewijs aanwezig.
 
 De Snyk-workflow faalde eerder bij de artifact upload, omdat `snyk-sca.json` en `snyk-code.json` niet werden gevonden. De workflow is daarna aangepast zodat de Snyk-stappen altijd een JSON-bestand achterlaten. Als Snyk succesvol scanresultaten oplevert, worden die bestanden geupload. Als Snyk faalt voordat JSON wordt geschreven, wordt een kleine error-JSON aangemaakt zodat de artifact upload alsnog bewijsbaar is.
 
 De aangepaste workflow is opnieuw uitgevoerd in de pull request en is succesvol afgerond. De artifact upload toont nu dat er 2 bestanden worden geupload en dat `snyk-results.zip` succesvol is aangemaakt.
 
-## 7. Tooling- en bewijsstatus
+## 7. OpenMRS runtime/exposure checklist
+
+De OpenMRS Core meldingen blijven open totdat de gebruikte runtime is gecontroleerd. Deze controles zijn nodig om te bepalen of de alerts opgelost, geaccepteerd of verder gemitigeerd moeten worden.
+
+| Check | Waarom nodig | Status |
+|---|---|---|
+| OpenMRS runtimeversie controleren | De vulnerable dependency staat als `provided` dependency in de module, maar wordt geleverd door de runtime. | Moet nog gedaan worden |
+| Tomcatversie controleren | De ModuleResourcesServlet advisory hangt mede af van runtime- en servletcontainergedrag. | Moet nog gedaan worden |
+| Module upload endpoint controleren | Zip Slip is relevant als module upload bereikbaar is voor de gebruikte omgeving. | Moet nog gedaan worden |
+| Module resource endpoint controleren | Path traversal is relevant als module resources via de runtime bereikbaar zijn. | Moet nog gedaan worden |
+| Productieconfiguratie controleren | Admin-only module upload hoort in productie beperkt of uitgeschakeld te zijn. | Moet nog gedaan worden |
+
+## 8. Tooling- en bewijsstatus
 
 | Onderdeel | Bewijs | Status | Vervolgactie |
 |---|---|---|---|
@@ -75,20 +89,22 @@ De aangepaste workflow is opnieuw uitgevoerd in de pull request en is succesvol 
 | SBOM | `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png` | Aanwezig | Artifact downloaden/bewaren bij auditbewijs indien nodig |
 | Snyk SCA/SAST workflow | `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` | Aanwezig | Periodiek blijven draaien in CI |
 | Snyk JSON artifacts | `bewijs/sbom-sca/snyk-artifact-upload-success.png` toont dat `snyk-sca.json` en `snyk-code.json` worden geupload | Aanwezig | Artifact downloaden/bewaren indien nodig |
-| Apache Tika Dependabot alert | `bewijs/sbom-sca/dependabot-tika-critical-alert-full.png` en `bewijs/sbom-sca/dependabot-tika-critical-alert-details.png` tonen package, vulnerable range, patched version, CVSS 10.0, CVE en GHSA | Aanwezig | Upgrade naar 3.2.2 testen |
+| Apache Tika Dependabot alert | `bewijs/sbom-sca/dependabot-tika-critical-alert-full.png` en `bewijs/sbom-sca/dependabot-tika-critical-alert-details.png` tonen package, vulnerable range, patched version, CVSS 10.0, CVE en GHSA | Aanwezig | Java/OpenMRS-upgradepad of Java 8-compatibele gepatchte Tika-versie bepalen |
+| Upload allowlist/MIME regressietests | `AttachmentResourceTest` en `AttachmentRestControllerTest` bewijzen veilige default allowlist, verboden extensies, MIME mismatch en expliciet toegestane legacy uploads | Aanwezig | Blijven opnemen in PR-testjob |
 
-## 8. Vervolgacties
+## 9. Vervolgacties
 
 | Actie | Eigenaar | Status |
 |---|---|---|
 | Snyk JSON-artifacts downloaden en bewaren als bewijs | Team | Aanwezig in GitHub Actions; downloaden/bewaren indien nodig |
 | CycloneDX SBOM-artifact bewaren bij auditbewijs | Team | Aanwezig in GitHub Actions; downloaden/bewaren indien nodig |
 | Tika upgrade-impact testen op Java 8 en OpenMRS modulecompatibiliteit | Developer | Uitgevoerd; directe upgrade naar 3.2.2 faalt op Java 8 |
+| Upload allowlist/MIME-validatie toevoegen als compensating control | Developer | Uitgevoerd en getest |
 | OpenMRS Core upgradepad onderzoeken | Team | Besluit: open houden; onderzoek moet nog gedaan worden |
 | Runtime Tomcatversie controleren | Team | Besluit: open houden; onderzoek moet nog gedaan worden |
 | Besluiten welke findings opgelost, geaccepteerd of als false positive geregistreerd worden | Team | Afgerond op hoofdlijn: Tika oplossen, OpenMRS findings open houden |
 
-## 9. Advisory links
+## 10. Advisory links
 
 - Apache Tika XXE: https://github.com/advisories/GHSA-f58c-gq56-vjjf
 - OpenMRS Module Upload Zip Slip: https://github.com/openmrs/openmrs-core/security/advisories/GHSA-78fc-9688-w8xw

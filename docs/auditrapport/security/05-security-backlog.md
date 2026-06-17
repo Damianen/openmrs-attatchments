@@ -71,11 +71,11 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Onderdeel | Invulling |
 |---|---|
 | Prioriteit | P1 |
-| Risico | `allowedFileExtensions` is standaard leeg, waardoor extensie- en MIME-controle alleen actief zijn als de allowlist gevuld is. |
+| Risico | Zonder veilige fallback kan een lege of verkeerd ingestelde allowlist ongewenste bestandstypen toelaten. |
 | Security requirement | Uploads moeten standaard worden beperkt tot bestandstypen die voor medische attachments logisch en toegestaan zijn. |
-| Maatregel | Stel een veilige default allowlist in, bijvoorbeeld `pdf,png,jpg,jpeg`, en valideer extensie en MIME altijd. |
+| Maatregel | Stel een veilige default allowlist in (`pdf,png,jpg,jpeg`) en valideer extensie en MIME altijd. |
 | Acceptatiecriteria | Toegestane bestanden worden geaccepteerd; `.exe`, scripts en MIME mismatch worden geweigerd; lege allowlist betekent niet automatisch "alles mag". |
-| Testbewijs | Uploadtests voor toegestaan bestand, verboden extensie, MIME mismatch en lege allowlist. |
+| Testbewijs | `AttachmentResourceTest` en `AttachmentRestControllerTest` controleren veilige default allowlist, verboden extensie, MIME mismatch en expliciet toegestane legacy uploads. |
 | NEN-7510 | A.8.28 Secure coding, A.8.29 Security testing. |
 
 ### SB-04 - Bewijs download-autorisatie

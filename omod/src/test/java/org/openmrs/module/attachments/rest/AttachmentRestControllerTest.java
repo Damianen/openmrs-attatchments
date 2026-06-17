@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Encounter;
+import org.openmrs.GlobalProperty;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
@@ -64,6 +65,8 @@ public class AttachmentRestControllerTest extends MainResourceControllerTest {
 	@Before
 	public void setup() throws IOException {
 		testHelper.init();
+		Context.getAdministrationService()
+		        .saveGlobalProperty(new GlobalProperty(AttachmentsConstants.GP_ALLOWED_FILE_EXTENSIONS, "dat,png"));
 		obs = testHelper.getTestComplexObs();
 		new Random().nextBytes(randomData);
 	}

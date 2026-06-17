@@ -32,12 +32,13 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.mock.web.MockMultipartFile;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Context.class)
 @PowerMockIgnore("javax.management.*")
 public class AttachmentResourceTest {
-	
+
 	@Before
 	public void setup() {
 		initMocks(this);
@@ -47,7 +48,7 @@ public class AttachmentResourceTest {
 		when(Context.getRegisteredComponent(AttachmentsConstants.COMPONENT_ATT_CONTEXT, AttachmentsContext.class))
 		        .thenReturn(ctx);
 	}
-	
+
 	@Test
 	public void get_shouldReturnFilenameProperty() {
 		// Arrange
@@ -65,14 +66,14 @@ public class AttachmentResourceTest {
 		attachmentObs.setValueComplex("m3ks | instructions.default | text/plain | filename.png");
 		when(service.getObsByUuid("1234")).thenReturn(attachmentObs);
 		when(service.getComplexObs(1, AttachmentsConstants.ATT_VIEW_CRUD)).thenReturn(attachmentObs);
-		
+
 		// Act
 		Attachment attachment = res.getByUniqueId("1234");
-		
+
 		// Assert
 		assertThat(attachment.getFilename(), equalTo("filename.png"));
 	}
-	
+
 	@Test
 	public void search_shouldInvokeApiForEncounterAttachments() {
 		// Setup
@@ -80,15 +81,15 @@ public class AttachmentResourceTest {
 		AttachmentsService attachmentsService = mock(AttachmentsService.class);
 		Patient patient = new Patient();
 		Encounter encounter = new Encounter();
-		
+
 		// Replay
 		res.search(attachmentsService, patient, null, encounter, null, true);
-		
+
 		// Verify
 		verify(attachmentsService, times(1)).getAttachments(patient, encounter, true);
 		verifyNoMoreInteractions(attachmentsService);
 	}
-	
+
 	@Test
 	public void search_shouldInvokeApiForVisitAttachments() {
 		// Setup
@@ -96,92 +97,130 @@ public class AttachmentResourceTest {
 		AttachmentsService attachmentsService = mock(AttachmentsService.class);
 		Patient patient = new Patient();
 		Visit visit = new Visit();
-		
+
 		// Replay
 		res.search(attachmentsService, patient, visit, null, null, true);
-		
+
 		// Verify
 		verify(attachmentsService, times(1)).getAttachments(patient, visit, true);
 		verifyNoMoreInteractions(attachmentsService);
 	}
-	
+
 	@Test
 	public void search_shouldInvokeApiForAllAttachments() {
 		// Setup
 		AttachmentResource res = new AttachmentResource();
 		AttachmentsService attachmentsService = mock(AttachmentsService.class);
 		Patient patient = new Patient();
-		
+
 		// Replay
 		res.search(attachmentsService, patient, null, null, null, true);
-		
+
 		// Verify
 		verify(attachmentsService, times(1)).getAttachments(patient, true);
 		verifyNoMoreInteractions(attachmentsService);
 	}
-	
+
 	@Test
 	public void search_shouldInvokeApiForEncounterlessAttachments() {
 		// Setup
 		AttachmentResource res = new AttachmentResource();
 		AttachmentsService attachmentsService = mock(AttachmentsService.class);
 		Patient patient = new Patient();
-		
+
 		// Replay
 		res.search(attachmentsService, patient, null, null, "only", true);
-		
+
 		// Verify
 		verify(attachmentsService, times(1)).getEncounterlessAttachments(patient, true);
 		verifyNoMoreInteractions(attachmentsService);
 	}
-	
+
 	@Test
 	public void search_shouldInvokeApiForAllAttachmentsButEncounterless() {
 		// Setup
 		AttachmentResource res = new AttachmentResource();
 		AttachmentsService attachmentsService = mock(AttachmentsService.class);
 		Patient patient = new Patient();
-		
+
 		// Replay
 		res.search(attachmentsService, patient, null, null, "false", true);
-		
+
 		// Verify
 		verify(attachmentsService, times(1)).getAttachments(patient, false, true);
 		verifyNoMoreInteractions(attachmentsService);
 	}
-	
+
 	@Test
 	public void base64MultipartFile_shouldAcceptValidDataUri() throws Exception {
 		byte[] expectedBytes = "hello".getBytes("UTF-8");
 		String base64Content = "data:text/plain;base64," + Base64.encodeBase64String(expectedBytes);
-		
+
 		AttachmentResource.Base64MultipartFile file = new AttachmentResource.Base64MultipartFile(base64Content, "file",
 		        "file.txt");
-		
+
 		assertThat(file.getContentType(), equalTo("text/plain"));
 		assertThat(file.getOriginalFilename(), equalTo("file.txt"));
 		assertThat(file.getBytes(), equalTo(expectedBytes));
 	}
-	
+
 	@Test(expected = IllegalRequestException.class)
 	public void base64MultipartFile_shouldRejectMissingComma() throws Exception {
 		new AttachmentResource.Base64MultipartFile("data:text/plain;base64" + Base64.encodeBase64String("hello".getBytes()),
 		        "file", "file.txt");
 	}
-	
+
 	@Test(expected = IllegalRequestException.class)
 	public void base64MultipartFile_shouldRejectMissingContentType() throws Exception {
 		new AttachmentResource.Base64MultipartFile("data:;base64," + Base64.encodeBase64String("hello".getBytes()), "file",
 		        "file.txt");
 	}
-	
+
 	@Test(expected = IllegalRequestException.class)
 	public void base64MultipartFile_shouldRejectNonBase64Payload() throws Exception {
 		new AttachmentResource.Base64MultipartFile("data:text/plain;base64,not really base64!", "file", "file.txt");
 	}
-	
+
 	@Test(expected = IllegalRequestException.class)
 	public void base64MultipartFile_shouldRejectEmptyPayload() throws Exception {
 		new AttachmentResource.Base64MultipartFile("data:text/plain;base64,", "file", "file.txt");
+	}
+
+	@Test
+	public void validateFileExtension_shouldAllowSafeDefaultExtensionWhenAllowlistIsEmpty() {
+		AttachmentResource.AllowedExtensionPolicy policy = AttachmentResource.getAllowedExtensionPolicy(new String[0]);
+
+		AttachmentResource.validateFileExtension("png", policy);
+	}
+
+	@Test(expected = IllegalRequestException.class)
+	public void validateFileExtension_shouldRejectUnsafeExtensionWhenAllowlistIsEmpty() {
+		AttachmentResource.AllowedExtensionPolicy policy = AttachmentResource.getAllowedExtensionPolicy(new String[0]);
+
+		AttachmentResource.validateFileExtension("exe", policy);
+	}
+
+	@Test(expected = IllegalRequestException.class)
+	public void getFileExtension_shouldRejectFileWithoutExtension() {
+		AttachmentResource.getFileExtension("attachment");
+	}
+
+	@Test(expected = IllegalRequestException.class)
+	public void validateFileContentType_shouldRejectMimeMismatch() throws Exception {
+		AttachmentResource.AllowedExtensionPolicy policy = AttachmentResource
+		        .getAllowedExtensionPolicy(new String[] { "png" });
+		MockMultipartFile file = new MockMultipartFile("file", "fake.png", "image/png", "not an image".getBytes("UTF-8"));
+
+		AttachmentResource.validateFileContentType(file, "png", policy);
+	}
+
+	@Test
+	public void validateFileContentType_shouldAllowConfiguredGenericBinaryExtension() throws Exception {
+		AttachmentResource.AllowedExtensionPolicy policy = AttachmentResource
+		        .getAllowedExtensionPolicy(new String[] { "dat" });
+		MockMultipartFile file = new MockMultipartFile("file", "legacy.dat", "application/octet-stream",
+		        new byte[] { 0, 1, 2, 3 });
+
+		AttachmentResource.validateFileContentType(file, "dat", policy);
 	}
 }
