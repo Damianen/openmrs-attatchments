@@ -14,6 +14,8 @@ Deze map bevat de security-documentatie en het bijbehorende bewijs voor de audit
 | `05-security-backlog.md` | Security backlog en mitigaties |
 | `06-sca-sbom-triage.md` | Dependency- en SBOM/SCA-triage |
 | `07-risicomatrix-bow-tie.md` | Risicomatrix en bow-tie uit Sprint 2 |
+| `08-attack-surface-overview.md` | Attack surface mapping voor Sprint 3 |
+| `09-logging-gap-analyse.md` | Logging gap analyse voor NEN-7510 A.8.15 |
 | `false-positive-beleid.md` | False-positivebeleid en register |
 | `risk-assessment-report.md` | Overkoepelend risk assessment report |
 

@@ -18,6 +18,7 @@ Dit threat model hoort inhoudelijk bij de C4-diagrammen:
 - `docs/architecture/c4-system-context.drawio`
 - `docs/architecture/c4-container-diagram.drawio`
 - `docs/architecture/c4-component-diagram.drawio`
+- `docs/auditrapport/security/08-attack-surface-overview.md`
 
 ## 2. Scope
 
@@ -61,6 +62,20 @@ Out of scope:
 | Module/handlers naar file storage | Handlers lezen en schrijven bestanden. | Path traversal of uitlezen buiten attachment-map |
 | OpenMRS Core naar database | Metadata wordt opgeslagen in de database. | Verkeerde of gemanipuleerde metadata |
 | Repository/CI naar dependencies | Maven dependencies worden tijdens build gebruikt. | Kwetsbare of verouderde libraries |
+
+## 4.1 Sprint 3 attack surface update
+
+Voor Sprint 3 is de attack surface opnieuw bekeken in `08-attack-surface-overview.md`. De belangrijkste high-risk ingangen zijn:
+
+| Attack surface | Belangrijkste vertrouwen | Waarom high risk |
+|---|---|---|
+| Upload attachment | OpenMRS auth, Tika MIME-detectie, global properties en patient/visit/encounter UUIDs | User-controlled bestand en metadata kunnen patientdata, opslag en systeemgedrag raken. |
+| Download attachment bytes | OpenMRS auth, module privilegecheck en ObsService | Geeft attachment bytes terug; fout in autorisatie kan direct datalek veroorzaken. |
+| Search attachments | OpenMRS services en requestparameters | Kan patient- en attachmentmetadata blootstellen. |
+| File storage handler | Attachment-root directory en complex obs metadata | Verkeerde padvalidatie kan leiden tot path traversal of arbitrary file read. |
+| Global properties | Correcte adminconfiguratie | Te ruime allowlist of uploadlimieten kunnen securityregels verzwakken. |
+
+Deze update bevestigt dat upload, download, search en file storage de belangrijkste technische ingangen blijven. Voor logging is de detailanalyse uitgewerkt in `09-logging-gap-analyse.md`.
 
 ## 5. Risicocriteria
 
