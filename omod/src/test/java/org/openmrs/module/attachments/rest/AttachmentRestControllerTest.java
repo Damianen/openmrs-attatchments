@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Objects;
-import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 
@@ -58,7 +57,7 @@ public class AttachmentRestControllerTest extends MainResourceControllerTest {
 	@Autowired
 	private AttachmentsContext ctx;
 	
-	private byte[] randomData = new byte[20];
+	private byte[] randomData = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1, -2, -3, -4, -5, -6, -7, -8, -9, 10 };
 	
 	private Obs obs;
 	
@@ -68,7 +67,6 @@ public class AttachmentRestControllerTest extends MainResourceControllerTest {
 		Context.getAdministrationService()
 		        .saveGlobalProperty(new GlobalProperty(AttachmentsConstants.GP_ALLOWED_FILE_EXTENSIONS, "dat,png"));
 		obs = testHelper.getTestComplexObs();
-		new Random().nextBytes(randomData);
 	}
 	
 	@After
