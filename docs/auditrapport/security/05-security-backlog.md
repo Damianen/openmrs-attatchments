@@ -95,11 +95,11 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Onderdeel | Invulling |
 |---|---|
 | Prioriteit | P2 |
-| Risico | `AttachmentsServiceImpl` logt patientnaam, geboortedatum en identifiers. Dit is te veel PII voor normale applicatielogs. |
+| Risico | `AttachmentsServiceImpl` logde patientnaam, geboortedatum en identifiers. Dit was te veel PII voor normale applicatielogs. |
 | Security requirement | Logs moeten genoeg informatie geven voor audit, maar geen onnodige patientgegevens bevatten. |
 | Maatregel | Log alleen minimale technische identificatie, zoals event type, attachment/obs UUID, user id en timestamp. Vermijd naam, geboortedatum en identifiers in plaintext logs. |
 | Acceptatiecriteria | Logs bevatten geen patientnaam, geboortedatum of identifiers; upload/download/delete acties zijn wel auditbaar. |
-| Testbewijs | Unit test of log-capture test die controleert dat PII niet in logs staat; review van logregels. |
+| Testbewijs | `AttachmentsServiceImplTest` controleert dat patientnaam, geboortedatum, interne patient-id en identifiers niet in de attachment-fetch logtekst staan. |
 | NEN-7510 | A.8.15 Logging, A.8.28 Secure coding. |
 
 ### SB-06 - Maak base64 upload parsing robuust
@@ -169,7 +169,7 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 3. SB-03: upload allowlist en MIME-validatie verbeteren.
 4. SB-04: download-autorisatie aantoonbaar testen.
 5. SB-08: CI/security tests betrouwbaar maken.
-6. SB-05, SB-06 en SB-09 oppakken als tweede ronde codeverbeteringen.
+6. SB-09 oppakken als tweede ronde codeverbetering; SB-05 en SB-06 zijn inmiddels gemitigeerd en getest.
 7. SB-07 blijven opvolgen via SBOM/SCA.
 8. SB-10 pas afronden wanneer echte secrets beschikbaar zijn.
 

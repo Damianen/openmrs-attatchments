@@ -56,6 +56,8 @@ Er is logging aanwezig om te registreren welke bestanden worden opgevraagd, wat 
 		    + " dob=" + patient.getBirthdate()
 		    + " identifiers=" + patient.getIdentifiers());  // PII written to application log
 ```
-**Toelichting:** In bovenstaand fragment worden patiëntnaam, geboortedatum en medische identifiers als platte tekst (plaintext) in de applicatielogs geschreven. Hoewel dit voldoet aan de eis "er moet gelogd worden dat data is ingezien", is het direct in strijd met de AVG en NEN-7510 richtlijnen rondom dataminimalisatie. Logs moeten gepseudonimiseerd (bijv. enkel met een UUID) of versleuteld zijn.
+**Toelichting:** In bovenstaand fragment werden patiëntnaam, geboortedatum en medische identifiers als platte tekst (plaintext) in de applicatielogs geschreven. Hoewel dit voldoet aan de eis "er moet gelogd worden dat data is ingezien", is het direct in strijd met de AVG en NEN-7510 richtlijnen rondom dataminimalisatie.
+
+**Status:** Deze bevinding is in de code gemitigeerd. `AttachmentsServiceImpl` logt nu alleen minimale technische context voor het ophalen van attachments. `AttachmentsServiceImplTest` controleert dat patientnaam, geboortedatum, interne patient-id en identifiers niet in de logtekst staan.
 
 Daarnaast mist er audit-logging bij kritieke acties; er wordt in AttachmentBytesResource.java helemaal niets gelogd wanneer een bestand via de /download functie wordt opgehaald.

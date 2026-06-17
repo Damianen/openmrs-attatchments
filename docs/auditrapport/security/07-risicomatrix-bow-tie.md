@@ -61,7 +61,7 @@ De PDF bevat de volgende applicatierisico's:
 |---|---|---|---|---|
 | Hardcoded AWS credentials lek | Zeer waarschijnlijk | Catastrofaal | Hoog | Uitgelekte cloud credentials kunnen leiden tot cloud takeover of toegang tot gevoelige configuratie. |
 | Path traversal | Waarschijnlijk | Catastrofaal | Hoog | Een aanvaller kan mogelijk bestanden buiten de bedoelde attachment-map lezen. |
-| Datalek door fout logging | Zeer waarschijnlijk | Serieus | Hoog | Patientgegevens of identifiers kunnen onnodig in logs terechtkomen. |
+| Datalek door fout logging | Mogelijk | Serieus | Verhoogd | Attachment-fetch logging is aangescherpt; verdere logreview blijft nuttig. |
 | Blootstelling van originele bestandsnamen | Waarschijnlijk | Serieus | Verhoogd | Bestandsnamen kunnen medische of persoonlijke informatie bevatten. |
 | Geen audit-logging | Zeer waarschijnlijk | Minder ernstig | Verhoogd | Zonder auditspoor is achteraf niet goed vast te stellen wie welke actie heeft uitgevoerd. |
 
