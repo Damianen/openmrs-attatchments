@@ -29,14 +29,44 @@ jobs:
         run: mvn clean install -DskipTests
 
       - name: Snyk Open Source scan (SCA)
-        run: snyk test --all-projects --json-file-output=snyk-sca.json
-        continue-on-error: true
+        run: |
+          set +e
+
+          if [ -z "${SNYK_TOKEN:-}" ]; then
+            echo '{"ok":false,"scan":"sca","error":"SNYK_TOKEN is not configured","exitCode":2}' > snyk-sca.json
+            exit 0
+          fi
+
+          snyk test --all-projects --json-file-output=snyk-sca.json
+          status=$?
+
+          if [ ! -s snyk-sca.json ]; then
+            echo "{\"ok\":false,\"scan\":\"sca\",\"error\":\"Snyk CLI did not produce JSON output\",\"exitCode\":${status}}" > snyk-sca.json
+          fi
+
+          echo "Snyk SCA exit code: ${status}"
+          exit 0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk Code scan (SAST)
-        run: snyk code test --json-file-output=snyk-code.json
-        continue-on-error: true
+        run: |
+          set +e
+
+          if [ -z "${SNYK_TOKEN:-}" ]; then
+            echo '{"ok":false,"scan":"sast","error":"SNYK_TOKEN is not configured","exitCode":2}' > snyk-code.json
+            exit 0
+          fi
+
+          snyk code test --json-file-output=snyk-code.json
+          status=$?
+
+          if [ ! -s snyk-code.json ]; then
+            echo "{\"ok\":false,\"scan\":\"sast\",\"error\":\"Snyk CLI did not produce JSON output\",\"exitCode\":${status}}" > snyk-code.json
+          fi
+
+          echo "Snyk Code exit code: ${status}"
+          exit 0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
@@ -48,4 +78,4 @@ jobs:
           path: |
             snyk-sca.json
             snyk-code.json
-          if-no-files-found: warn
+          if-no-files-found: error

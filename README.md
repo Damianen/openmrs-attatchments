@@ -30,11 +30,11 @@ docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod
 
 **Gescheiden configuratie per omgeving.** Elke omgeving heeft een eigen env-bestand (`.env.dev`, `.env.test`, `.env.prod`), aangemaakt vanaf de template `docker/.env.template`. Daarin staan o.a. de databasenaam, -gebruiker en -wachtwoorden én een eigen `COMPOSE_PROJECT_NAME`. Doordat Docker Compose containers en volumes per projectnaam namespacet, krijgt elke omgeving zo zijn eigen containers en eigen volumes (`<project>_db-data`, `<project>_openmrs-data`).
 
-**Secrets staan niet in git.** `.gitignore` sluit `docker/.env` en `docker/.env.*` uit; alleen de lege `docker/.env.template` wordt gecommit. Daarnaast zijn in GitHub de Environments `dev`/`test`/`prod` ingericht, met protection rules op `prod` (required reviewer, wait timer, protected branches/tags); zie [docs/auditrapport/02-pipeline-compliance.md](docs/auditrapport/02-pipeline-compliance.md).
+**Secrets staan niet in git.** `.gitignore` sluit `docker/.env` en `docker/.env.*` uit; alleen de lege `docker/.env.template` wordt gecommit. Daarnaast zijn in GitHub de Environments `dev`/`test`/`prod` ingericht, met protection rules op `prod` (required reviewer, wait timer, protected branches/tags); zie [docs/auditrapport/security/02-pipeline-compliance.md](docs/auditrapport/security/02-pipeline-compliance.md).
 
 ## Hoe wordt voorkomen dat testdata in productie terechtkomt
 
-Het uitgangspunt staat in het [testdatabeleid](docs/auditrapport/03-testdatabeleid.md): in `dev` en `test` wordt uitsluitend synthetische of geanonimiseerde testdata gebruikt, productiedata wordt nooit gekopieerd naar ontwikkel- of testomgevingen, en in `prod` wordt geen testdata geïmporteerd.
+Het uitgangspunt staat in het [testdatabeleid](docs/auditrapport/security/03-testdatabeleid.md): in `dev` en `test` wordt uitsluitend synthetische of geanonimiseerde testdata gebruikt, productiedata wordt nooit gekopieerd naar ontwikkel- of testomgevingen, en in `prod` wordt geen testdata geïmporteerd.
 
 Technisch wordt dat als volgt afgedwongen:
 

@@ -5,9 +5,9 @@
 Dit document werkt de security backlog uit voor de OpenMRS Attachments Module. De backlog is gebaseerd op:
 
 - de C4-diagrammen in `docs/architecture/`;
-- het threat model in `docs/auditrapport/04-threat-model.md`;
-- de gap-analyse in `docs/auditrapport/01-gap-analyse.md`;
-- het pipeline-complianceverslag in `docs/auditrapport/02-pipeline-compliance.md`;
+- het threat model in `docs/auditrapport/security/04-threat-model.md`;
+- de gap-analyse in `docs/auditrapport/security/01-gap-analyse.md`;
+- het pipeline-complianceverslag in `docs/auditrapport/security/02-pipeline-compliance.md`;
 - het verdiepende onderzoek naar de Attachments module.
 
 De opdracht vraagt om geprioriteerde security requirements op basis van gevonden risico's. Daarom staan de belangrijkste technische en procesmatige risico's hieronder als backlog-items met prioriteit, maatregel, acceptatiecriteria, testbewijs en NEN-7510-koppeling.
