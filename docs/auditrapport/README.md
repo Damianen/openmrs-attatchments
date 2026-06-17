@@ -11,7 +11,7 @@ Zo staan Markdown-documenten en bewijsafbeeldingen bij het onderdeel waar ze inh
 
 | Map | Inhoud |
 |---|---|
-| `security/` | Security-auditdocumenten, risk assessment, threat model, pipeline-compliance, SCA/SBOM-triage, Sprint 3 attack surface/logging en securitybewijs |
+| `security/` | Security-auditdocumenten, risk assessment, threat model, pipeline-compliance, SCA/SBOM-triage, Sprint 3 attack surface/logging/coverage en securitybewijs |
 | `onderhoudbaarheid/` | Documenten en bewijs voor onderhoudbaarheid, codekwaliteit, testbaarheid en technische schuld |
 
 ## Security

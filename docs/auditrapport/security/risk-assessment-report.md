@@ -106,7 +106,7 @@ Voor patientdata geldt dat rode risico's niet onbehandeld mogen blijven. Oranje 
 | T06 | Malformed base64 upload kan onduidelijk foutgedrag geven | Beschikbaarheid, integriteit | 3 | 3 | 9 | Gemitigeerd en getest |
 | T07 | Legacy dependencies kunnen bekende CVE's bevatten | Vertrouwelijkheid, integriteit, beschikbaarheid | 3 | 4 | 12 | Gedeeltelijk afgerond; SCA-besluiten staan, runtimecontrole blijft open |
 | T08 | Deployment secrets en deployment workflow zijn nog niet volledig bewezen | Integriteit | 2 | 4 | 8 | Moet nog gedaan worden |
-| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Maven Tests workflow is ingericht; required-check selectie volgt na eerste run |
+| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Maven Tests workflow en JaCoCo coverage artifacts zijn ingericht; required-check selectie en baselinebeoordeling volgen na eerste run |
 | T10 | Attachmentmetadata kan verkeerd gekoppeld worden aan patient/context | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Gemitigeerd en getest voor upload patient/visit/encounter mismatch |
 
 ## 8. Hoogste risico's
@@ -174,7 +174,7 @@ De hoogste risico's uit de bestaande analyse zijn:
 | SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Gemitigeerd en getest voor attachment-fetch, upload/delete en bytes-download logging |
 | SB-06 | Maak base64 upload parsing robuust | P2 | Gemitigeerd en getest |
 | SB-07 | Triager dependency- en SBOM-findings | P2 | Besluiten afgerond; uitvoering/open runtimeonderzoek moet nog gedaan worden |
-| SB-08 | Maak securitytests betrouwbaar in CI | P2 | Maven test workflow toegevoegd; na eerste PR-run als required check opnemen in ruleset |
+| SB-08 | Maak securitytests en coverage betrouwbaar in CI | P2 | Maven test workflow en JaCoCo artifacts toegevoegd; na eerste PR-run als required check opnemen en coveragebaseline beoordelen |
 | SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Gemitigeerd en getest |
 | SB-10 | Richt deployment secrets later veilig in via GitHub Environments | P3 | Moet nog gedaan worden |
 
@@ -212,11 +212,12 @@ Totale eerste inschatting: **49-77 uur**, oftewel **EUR 2.940-4.620** bij EUR 60
 
 ## 15. Security tests als quality gate
 
-Securitytests zijn technisch ingericht als PR workflow, maar de nieuwe Maven Tests check moet na de eerste GitHub Actions run nog als verplichte required check in de ruleset worden geselecteerd.
+Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow genereert ook JaCoCo coverage rapporten als artifacts. Na de eerste GitHub Actions run moet de Maven Tests check nog als verplichte required check in de ruleset worden geselecteerd en moet de coveragebaseline worden beoordeeld.
 
 | Stap | Gewenste inrichting | Status |
 |---|---|---|
 | Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht in `.github/workflows/maven-tests.yml`; eerste GitHub Actions run en required-check selectie volgen na push |
+| Coverage rapport | JaCoCo rapporten worden gemaakt voor API en OMOD security tests | Ingericht; eerste CI-artifact moet nog beoordeeld worden |
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie, patientbinding en base64 parsing | Aanwezig voor path traversal, uploadvalidatie/MIME, download-autorisatie, patient/visit/encounter mismatch en base64 parsing |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
@@ -237,7 +238,7 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
 | Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts open houden totdat runtime exposure is gecontroleerd |
-| Securitytests | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding en base64 parsing zijn toegevoegd; Maven workflow is ingericht en moet na eerste run nog als required check worden geselecteerd |
+| Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding en base64 parsing zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en moet na eerste run nog als required check/baseline worden beoordeeld |
 | CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
 
 ## 17. Conclusie

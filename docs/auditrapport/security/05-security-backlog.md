@@ -36,7 +36,7 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | SB-05 | P2 | T05 | Logs mogen geen onnodige patientgegevens bevatten. | A.8.15, A.8.28 |
 | SB-06 | P2 | T06 | Base64 uploads moeten veilig en voorspelbaar worden gevalideerd. | A.8.28, A.8.29 |
 | SB-07 | P2 | T07 | Dependency-risico's moeten via SBOM/SCA worden opgevolgd. | A.8.8, A.8.25 |
-| SB-08 | P2 | T09 | Security tests moeten betrouwbaar in CI kunnen draaien. | A.8.25, A.8.29 |
+| SB-08 | P2 | T09 | Security tests en coverage moeten betrouwbaar in CI kunnen draaien. | A.8.25, A.8.29 |
 | SB-09 | P2 | T10 | Uploadmetadata moet voorkomen dat attachments verkeerd gekoppeld worden. | A.8.3, A.8.28, A.8.29 |
 | SB-10 | P3 | T08 | Deployment secrets moeten later via GitHub Environments worden ingericht. | A.8.5, A.8.25 |
 
@@ -127,16 +127,16 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Testbewijs | SBOM-artifact, SCA-output, Dependabot alerts/PR's en triage-overzicht. |
 | NEN-7510 | A.8.8 Kwetsbaarheidsbeheer, A.8.25 Secure SDLC. |
 
-### SB-08 - Maak security tests betrouwbaar in CI
+### SB-08 - Maak security tests en coverage betrouwbaar in CI
 
 | Onderdeel | Invulling |
 |---|---|
 | Prioriteit | P2 |
-| Risico | Zonder aparte Maven testjob zijn security regressietests niet zichtbaar genoeg als PR quality gate. |
-| Security requirement | Security tests moeten reproduceerbaar draaien in CI voordat wijzigingen worden gemerged. |
-| Maatregel | Splits CI in duidelijke jobs voor `api` en `omod` security regressietests. |
-| Acceptatiecriteria | CI draait groen voor relevante testjobs; falende securitytest blokkeert merge; testresultaat is zichtbaar in GitHub Actions. |
-| Testbewijs | `.github/workflows/maven-tests.yml` draait `mvn -pl api test` en omod security regressietests op pull requests; required-check selectie volgt na eerste workflow-run. |
+| Risico | Zonder aparte Maven testjob en coverage rapport zijn security regressietests niet zichtbaar genoeg als PR quality gate. |
+| Security requirement | Security tests en coverage moeten reproduceerbaar draaien in CI voordat wijzigingen worden gemerged. |
+| Maatregel | Splits CI in duidelijke jobs voor `api` en `omod` security regressietests en upload JaCoCo coverage rapporten als artifact. |
+| Acceptatiecriteria | CI draait groen voor relevante testjobs; falende securitytest blokkeert merge; testresultaat en coverage artifact zijn zichtbaar in GitHub Actions. |
+| Testbewijs | `.github/workflows/maven-tests.yml` draait `mvn -pl api test jacoco:report` en omod security regressietests met `jacoco:report`; required-check selectie en coveragebaseline volgen na eerste workflow-run. |
 | NEN-7510 | A.8.25 Secure SDLC, A.8.29 Security testing. |
 
 ### SB-09 - Versterk metadata- en patientbinding bij upload
@@ -170,7 +170,7 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 2. SB-02: file access in handlers veilig maken.
 3. SB-03: upload allowlist en MIME-validatie verbeteren.
 4. SB-04: download-autorisatie aantoonbaar testen.
-5. SB-08: Maven test workflow na eerste run als required check opnemen.
+5. SB-08: Maven test workflow na eerste run als required check opnemen en coverage artifacts beoordelen.
 6. SB-05, SB-06 en SB-09 zijn inmiddels gemitigeerd en getest.
 7. SB-07 blijven opvolgen via SBOM/SCA.
 8. SB-10 pas afronden wanneer echte secrets beschikbaar zijn.
