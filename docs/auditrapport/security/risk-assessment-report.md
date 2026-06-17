@@ -24,6 +24,7 @@ Dit rapport is gebaseerd op de documenten en bewijzen die al in het project aanw
 | `04-threat-model.md` | STRIDE threat model en risicomatrix |
 | `05-security-backlog.md` | Security backlog en mitigaties |
 | `06-sca-sbom-triage.md` | Dependency- en SBOM-triage |
+| `07-risicomatrix-bow-tie.md` | Risicomatrix en bow-tie voor applicatie- en CI/CD-risico's |
 | `false-positive-beleid.md` | Werkwijze voor false positives |
 | `bewijs/` | Security-bewijs voor repository access, scanning en SBOM/SCA |
 | `docs/architecture/` | C4-diagrammen voor systeem-, container- en componentniveau |
@@ -133,6 +134,7 @@ De hoogste risico's uit de bestaande analyse zijn:
 | Secret scanning | `bewijs/scanning/github-security-settings.png` | Aanwezig |
 | SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/sbom-sca/sbom-workflow-success.png`, `bewijs/sbom-sca/sbom-artifact-overview.png`, GitHub Actions run `Generate SBOM #15` | Aanwezig; artifact succesvol geupload |
 | Snyk SCA/SAST | `.github/workflows/snyk.yml`, `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png`, `bewijs/sbom-sca/snyk-artifact-upload-success.png` | Aanwezig; workflow draait en JSON-artifacts worden geupload |
+| PR securitychecks | `bewijs/scanning/pr-security-checks-passed.png`; `bewijs/repository-access/main-branch-ruleset.png` | Aanwezig; CodeQL, Snyk en code scanning zijn groen op een PR. Failed checks blokkeren merge volgens de ingestelde PR/ruleset-werkwijze |
 | Testdatabeleid | `03-testdatabeleid.md` | Aanwezig |
 
 ## 10. NEN-7510:2024-2 koppeling
@@ -158,8 +160,8 @@ De hoogste risico's uit de bestaande analyse zijn:
 | Download-autorisatie niet expliciet bewezen | Onbevoegde gebruiker kan mogelijk attachment bytes downloaden | Expliciete privilegecheck of integratietest toevoegen | A.8.3, A.8.5, A.8.29 | Moet nog gedaan worden |
 | PII in logs | Patientnaam, geboortedatum of identifiers kunnen breder zichtbaar worden | Dataminimalisatie toepassen en auditlogging scheiden van applicatielogs | A.8.15, A.8.28 | Moet nog gedaan worden |
 | Malformed base64 upload | Onvoorspelbaar foutgedrag of denial of service | Aparte parser met duidelijke validatie en negatieve tests | A.8.28, A.8.29 | Moet nog gedaan worden |
-| Apache Tika XXE | Malicious bestand kan mogelijk XXE-triggeren bij bestandsdetectie/parsing | Tika upgraden naar gepatchte versie of compensating controls documenteren | A.8.8, A.8.28, A.8.29 | Open in `06-sca-sbom-triage.md` |
-| OpenMRS Core dependency alerts | Runtime kan kwetsbaar zijn voor path traversal of Zip Slip | Runtimeversie controleren, OpenMRS Core upgraden en endpoint-exposure beperken | A.8.8, A.8.25, A.8.29 | Open in `06-sca-sbom-triage.md` |
+| Apache Tika XXE | Malicious bestand kan mogelijk XXE-triggeren bij bestandsdetectie/parsing | Tika upgraden naar gepatchte versie of compensating controls documenteren | A.8.8, A.8.28, A.8.29 | Besluit: oplossen; upgrade-impact nog testen |
+| OpenMRS Core dependency alerts | Runtime kan kwetsbaar zijn voor path traversal of Zip Slip | Runtimeversie controleren, OpenMRS Core upgraden en endpoint-exposure beperken | A.8.8, A.8.25, A.8.29 | Besluit: open houden; runtime exposure nog controleren |
 
 ## 12. Mitigatieplan
 
@@ -171,8 +173,8 @@ De hoogste risico's uit de bestaande analyse zijn:
 | SB-04 | Bewijs download-autorisatie met tests of expliciete check | P1 | Moet nog gedaan worden |
 | SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Moet nog gedaan worden |
 | SB-06 | Maak base64 upload parsing robuust | P2 | Moet nog gedaan worden |
-| SB-07 | Triager dependency- en SBOM-findings | P2 | Moet nog gedaan worden |
-| SB-08 | Maak securitytests betrouwbaar in CI | P2 | Moet nog gedaan worden |
+| SB-07 | Triager dependency- en SBOM-findings | P2 | Besluiten afgerond; uitvoering/open runtimeonderzoek moet nog gedaan worden |
+| SB-08 | Maak securitytests betrouwbaar in CI | P2 | Gedeeltelijk afgerond; PR-checks draaien en failed checks blokkeren merge, extra security regressietests moeten nog worden toegevoegd |
 | SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Moet nog gedaan worden |
 | SB-10 | Richt deployment secrets later veilig in via GitHub Environments | P3 | Moet nog gedaan worden |
 
@@ -182,31 +184,31 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 
 | ID | Finding | Package | Status |
 |---|---|---|---|
-| SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Niet geaccepteerd; Dependabot detailbewijs aanwezig; upgrade naar 3.2.2 testen |
-| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; overzichtsbewijs aanwezig; runtime exposure controleren |
-| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Open; overzichtsbewijs aanwezig; runtime/Tomcat-versie controleren |
+| SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Besluit: oplossen; Dependabot detailbewijs aanwezig; upgrade naar 3.2.2 testen |
+| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; overzichtsbewijs aanwezig; runtime exposure controleren |
+| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; overzichtsbewijs aanwezig; runtime/Tomcat-versie controleren |
 
 SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. Snyk-bewijs is aanwezig via `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` en `bewijs/sbom-sca/snyk-artifact-upload-success.png`, waarin te zien is dat de workflow succesvol draait en dat `snyk-sca.json` en `snyk-code.json` als artifact worden geupload.
 
 ## 14. Kostenraming
 
-Deze raming is een eerste inschatting in uren. Er is nog geen uurtarief vastgesteld, daarom is het budget als formule opgenomen.
+Deze raming is een eerste inschatting in uren. Voor een concreet budget is een indicatief uurtarief van **EUR 60 per uur** gebruikt. Dit is een interne schatting voor development, security review en documentatie.
 
 | Maatregel | Rollen | Inschatting | Budget |
 |---|---|---:|---|
-| SB-01 valideren en documentatie bijwerken | Developer + reviewer | 2-4 uur | Uren x uurtarief |
-| SB-02 path traversal fix in handlers + tests | Developer + reviewer | 6-8 uur | Uren x uurtarief |
-| SB-03 upload allowlist + MIME-validatie + tests | Developer + reviewer | 5-7 uur | Uren x uurtarief |
-| SB-04 download-autorisatie aantonen met tests | Developer + reviewer | 6-8 uur | Uren x uurtarief |
-| SB-05 PII uit logs verwijderen + logreview | Developer + reviewer | 3-5 uur | Uren x uurtarief |
-| SB-06 base64 parser + negatieve tests | Developer + reviewer | 5-7 uur | Uren x uurtarief |
-| SB-07 SCA/SBOM dependencytriage | Security reviewer + developer | 4-8 uur | Uren x uurtarief |
-| SB-08 securitytests opnemen in CI | Developer + reviewer | 6-10 uur | Uren x uurtarief |
-| SB-09 metadata-/patientbinding tests | Developer + reviewer | 4-6 uur | Uren x uurtarief |
-| SB-10 deployment secrets via environments | Developer + reviewer | 2-4 uur | Uren x uurtarief |
-| Pentest afronden en verwerken | Tester + reviewer | 6-10 uur | Uren x uurtarief |
+| SB-01 valideren en documentatie bijwerken | Developer + reviewer | 2-4 uur | EUR 120-240 |
+| SB-02 path traversal fix in handlers + tests | Developer + reviewer | 6-8 uur | EUR 360-480 |
+| SB-03 upload allowlist + MIME-validatie + tests | Developer + reviewer | 5-7 uur | EUR 300-420 |
+| SB-04 download-autorisatie aantonen met tests | Developer + reviewer | 6-8 uur | EUR 360-480 |
+| SB-05 PII uit logs verwijderen + logreview | Developer + reviewer | 3-5 uur | EUR 180-300 |
+| SB-06 base64 parser + negatieve tests | Developer + reviewer | 5-7 uur | EUR 300-420 |
+| SB-07 SCA/SBOM dependencytriage | Security reviewer + developer | 4-8 uur | EUR 240-480 |
+| SB-08 securitytests opnemen in CI | Developer + reviewer | 6-10 uur | EUR 360-600 |
+| SB-09 metadata-/patientbinding tests | Developer + reviewer | 4-6 uur | EUR 240-360 |
+| SB-10 deployment secrets via environments | Developer + reviewer | 2-4 uur | EUR 120-240 |
+| Pentest afronden en verwerken | Tester + reviewer | 6-10 uur | EUR 360-600 |
 
-Totale eerste inschatting: **49-77 uur**, exclusief extra tijd voor onverwachte dependency-upgradeproblemen.
+Totale eerste inschatting: **49-77 uur**, oftewel **EUR 2.940-4.620** bij EUR 60 per uur. Dit is exclusief extra tijd voor onverwachte dependency-upgradeproblemen.
 
 ## 15. Security tests als quality gate
 
@@ -217,11 +219,13 @@ Securitytests zijn nog niet volledig ingericht als verplichte PR quality gate. D
 | Maven testjob | Unit- en integratietests draaien bij pull requests | Moet nog gedaan worden |
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie en base64 parsing | Moet nog gedaan worden |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
+| PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
 | SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15` |
-| Required checks | Branch protection/ruleset verplicht de security/testchecks | Moet nog gedaan worden |
-| Fail policy | High/critical findings blokkeren merge of vragen expliciete triage | Moet nog gedaan worden |
+| Required checks | Branch protection/ruleset verplicht de security/testchecks | Aanwezig volgens ingestelde PR/ruleset-werkwijze; `protect-main` ruleset en groene PR-checks zijn als bewijs aanwezig |
+| Review policy | Pull requests naar `main` hebben minimaal 1 review nodig | Aanwezig volgens ingestelde PR/ruleset-werkwijze |
+| Fail policy | Foutieve checks blokkeren merge; high/critical findings vragen expliciete triage | Aanwezig voor PR-checks; inhoudelijke triage staat in `06-sca-sbom-triage.md` |
 
-Zolang de required checks nog niet technisch zijn ingericht, blijft dit een open risico binnen de CI/CD-risk assessment.
+De huidige situatie bewijst dat securitychecks op PR-niveau draaien en groen kunnen afronden. Volgens de ingestelde PR/ruleset-werkwijze kunnen PR's met foutieve checks niet worden gemerged en is minimaal 1 review nodig.
 
 ## 16. Moet nog gedaan worden
 
@@ -232,11 +236,10 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest | Pentest afronden en daarna pas resultaten verwerken in een apart pentestdocument of als bijlage |
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
-| Dependencytriage | Open acties uit `06-sca-sbom-triage.md` afronden, vooral runtime exposure en upgradebesluiten voor OpenMRS alerts |
+| Dependencytriage | Besluiten zijn genomen; Tika oplossen en OpenMRS alerts open houden totdat runtime exposure is gecontroleerd |
 | Securitytests | Tests toevoegen voor path traversal, uploadvalidatie, autorisatie en base64 parsing |
-| CI quality gate | Bepalen welke securitytests verplicht moeten slagen voordat een PR mag mergen |
+| CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
 | Documentatie bijwerken | Oude verwijzingen naar raw `/download?path=` controleren en bijwerken naar de huidige situatie |
-| Kosteninschatting | Uurtarief toevoegen zodra dit bekend is |
 
 ## 17. Conclusie
 
