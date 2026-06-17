@@ -129,12 +129,12 @@ De hoogste risico's uit de bestaande analyse zijn:
 | Production protection rules | `bewijs/repository-access/production-environment-rules.png` | Aanwezig |
 | Branch protection / ruleset | `bewijs/repository-access/main-branch-ruleset.png` | Aanwezig |
 | MFA voor teamleden | `bewijs/repository-access/mfa-*.png` | Aanwezig |
-| Dependabot | `.github/dependabot.yml`, `bewijs/sbom-sca/dependabot-alerts-overview.png` | Aanwezig |
+| Dependabot | `.github/dependabot.yml`, `bewijs/sbom-sca/dependabot-alerts-overview.png`, `bewijs/repository-access/dependabot-prs-review-required.png` | Aanwezig; alerts en update PR's worden zichtbaar gemaakt |
 | CodeQL/code scanning | `bewijs/scanning/codeql-workflow.png`, `bewijs/scanning/code-scanning-alerts.png` | Aanwezig |
 | Secret scanning | `bewijs/scanning/github-security-settings.png` | Aanwezig |
 | SBOM-generatie | `.github/workflows/sbom.yml`, `bewijs/sbom-sca/sbom-workflow-success.png`, `bewijs/sbom-sca/sbom-artifact-overview.png`, GitHub Actions run `Generate SBOM #15` | Aanwezig; artifact succesvol geupload |
 | Snyk SCA/SAST | `.github/workflows/snyk.yml`, `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png`, `bewijs/sbom-sca/snyk-artifact-upload-success.png` | Aanwezig; workflow draait en JSON-artifacts worden geupload |
-| PR securitychecks | `bewijs/scanning/pr-security-checks-passed.png`; `bewijs/repository-access/main-branch-ruleset.png` | Aanwezig; CodeQL, Snyk en code scanning zijn groen op een PR. Failed checks blokkeren merge volgens de ingestelde PR/ruleset-werkwijze |
+| PR securitychecks en review | `bewijs/scanning/pr-security-checks-passed.png`; `bewijs/repository-access/main-branch-ruleset.png`; `bewijs/repository-access/dependabot-prs-review-required.png` | Aanwezig; CodeQL, Snyk en code scanning zijn groen op een PR. Failed checks blokkeren merge en PR's vereisen review volgens de ingestelde PR/ruleset-werkwijze |
 | Testdatabeleid | `03-testdatabeleid.md` | Aanwezig |
 
 ## 10. NEN-7510:2024-2 koppeling
@@ -222,7 +222,7 @@ Securitytests zijn nog niet volledig ingericht als verplichte PR quality gate. D
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
 | SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15` |
 | Required checks | Branch protection/ruleset verplicht de security/testchecks | Aanwezig volgens ingestelde PR/ruleset-werkwijze; `protect-main` ruleset en groene PR-checks zijn als bewijs aanwezig |
-| Review policy | Pull requests naar `main` hebben minimaal 1 review nodig | Aanwezig volgens ingestelde PR/ruleset-werkwijze |
+| Review policy | Pull requests naar `main` hebben minimaal 1 review nodig | Aanwezig; `bewijs/repository-access/dependabot-prs-review-required.png` toont dependency PR's met `Review required` |
 | Fail policy | Foutieve checks blokkeren merge; high/critical findings vragen expliciete triage | Aanwezig voor PR-checks; inhoudelijke triage staat in `06-sca-sbom-triage.md` |
 
 De huidige situatie bewijst dat securitychecks op PR-niveau draaien en groen kunnen afronden. Volgens de ingestelde PR/ruleset-werkwijze kunnen PR's met foutieve checks niet worden gemerged en is minimaal 1 review nodig.

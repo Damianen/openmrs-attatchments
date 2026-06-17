@@ -29,7 +29,7 @@ De Sprint 1-opdracht vraagt om twee hoofdonderdelen: een gap-analyse op drie NEN
 
 | NEN-7510 control | Doel | Pipeline-/repositorymaatregel | Bewijs | Status |
 |---|---|---|---|---|
-| **A.8.3 Toegangsbeveiliging** | Ongecontroleerde wijzigingen voorkomen. | Ruleset `protect-main` is ingericht voor `main`. Direct pushen naar `main` is geblokkeerd; wijzigingen lopen via branches en pull requests met minimaal 1 review. | `bewijs/repository-access/main-branch-ruleset.png`; teamafspraak werkwijze | Aanwezig |
+| **A.8.3 Toegangsbeveiliging** | Ongecontroleerde wijzigingen voorkomen. | Ruleset `protect-main` is ingericht voor `main`. Direct pushen naar `main` is geblokkeerd; wijzigingen lopen via branches en pull requests met minimaal 1 review. | `bewijs/repository-access/main-branch-ruleset.png`; `bewijs/repository-access/dependabot-prs-review-required.png`; teamafspraak werkwijze | Aanwezig |
 | **A.8.5 Authenticatie** | Betrouwbare verificatie van gebruikers. | Teamleden gebruiken persoonlijke GitHub-accounts met MFA. | `bewijs/repository-access/mfa-*.png`; teamverklaring | Aanwezig |
 | **A.8.8 Kwetsbaarheidsbeheer** | Kwetsbaarheden tijdig signaleren en opvolgen. | Dependabot alerts zijn actief voor Maven dependencies. SBOM wordt gegenereerd met CycloneDX en als artifact opgeslagen. | `.github/dependabot.yml`; `.github/workflows/sbom.yml`; `bewijs/sbom-sca/dependabot-alerts-overview.png`; `bewijs/sbom-sca/sbom-workflow-success.png`; `bewijs/sbom-sca/sbom-artifact-overview.png` | Aanwezig |
 | **A.8.15 Logging** | Gebeurtenissen en wijzigingen navolgbaar maken. | GitHub bewaart auditsporen via commits, pull requests, workflow-runs en security findings. De codegerichte loggingrisico's staan in de gap-analyse. | GitHub activiteit; workflow-runs; `01-gap-analyse.md` | Gedeeltelijk aanwezig |
@@ -55,7 +55,7 @@ De Sprint 1-opdracht vraagt om twee hoofdonderdelen: een gap-analyse op drie NEN
 |---|---|---|
 | GitHub environment secrets zijn nog niet ingericht, omdat er nog geen echte secrets beschikbaar zijn. | A.8.25 | Nog in te richten |
 | Er is nog geen deployment-workflow die expliciet `environment: test` of `environment: prod` gebruikt. | A.8.25 | Nog in te richten |
-| Required checks en minimaal 1 review zijn ingericht volgens teamwerkwijze. De bestaande screenshot toont de actieve `protect-main` ruleset; extra detailbewijs van alle ruleset-instellingen kan later nog worden toegevoegd. | A.8.3, A.8.29 | Aanwezig |
+| Required checks en minimaal 1 review zijn ingericht volgens teamwerkwijze. De screenshots tonen de actieve `protect-main` ruleset en dependency PR's met `Review required`. | A.8.3, A.8.29 | Aanwezig |
 | Code scanning en Dependabot tonen open findings. Deze moeten worden beoordeeld in de security backlog en het risk assessment. | A.8.8, A.8.28, A.8.29 | Meenemen in Sprint 2 |
 
 ## 6. Conclusie

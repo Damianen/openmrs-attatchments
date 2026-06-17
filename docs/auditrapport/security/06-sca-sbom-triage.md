@@ -9,6 +9,7 @@ Dit document legt vast hoe dependency- en SBOM-findings worden opgevolgd. De too
 | Bron | Gebruik |
 |---|---|
 | `bewijs/sbom-sca/dependabot-alerts-overview.png` | Screenshot met drie open Dependabot alerts |
+| `bewijs/repository-access/dependabot-prs-review-required.png` | Bewijs dat Dependabot dependency-update PR's aanmaakt en dat review vereist is |
 | `bewijs/sbom-sca/dependabot-openmrs-module-upload-zip-slip-overview.png` | Overzichtsbewijs van de OpenMRS Module Upload Zip Slip alert |
 | `bewijs/sbom-sca/dependabot-openmrs-module-resources-path-traversal-overview.png` | Overzichtsbewijs van de OpenMRS ModuleResourcesServlet path traversal alert |
 | `.github/dependabot.yml` | Wekelijkse Maven dependencycontrole |
@@ -69,6 +70,7 @@ De aangepaste workflow is opnieuw uitgevoerd in de pull request en is succesvol 
 | Onderdeel | Bewijs | Status | Vervolgactie |
 |---|---|---|---|
 | Dependabot alerts | `bewijs/sbom-sca/dependabot-alerts-overview.png`, Tika-detail screenshots en OpenMRS alert-overviews | Aanwezig | Detailpagina's blijven beschikbaar in GitHub Dependabot |
+| Dependabot update PR's | `bewijs/repository-access/dependabot-prs-review-required.png` toont dependency-update PR's met `Review required` | Aanwezig | Updates beoordelen via PR-review voordat ze worden gemerged |
 | PR securitychecks | `bewijs/scanning/pr-security-checks-passed.png` toont een gemergde PR met groene CodeQL-, Snyk- en code scanning-checks | Aanwezig | Failed checks blokkeren merge volgens de ingestelde PR/ruleset-werkwijze |
 | SBOM | `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png` | Aanwezig | Artifact downloaden/bewaren bij auditbewijs indien nodig |
 | Snyk SCA/SAST workflow | `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` | Aanwezig | Periodiek blijven draaien in CI |

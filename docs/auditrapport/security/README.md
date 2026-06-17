@@ -21,6 +21,6 @@ Deze map bevat de security-documentatie en het bijbehorende bewijs voor de audit
 
 | Map | Inhoud |
 |---|---|
-| `bewijs/repository-access/` | GitHub Environments, production rules, branch ruleset en MFA |
+| `bewijs/repository-access/` | GitHub Environments, production rules, branch ruleset, PR-reviewbewijs en MFA |
 | `bewijs/scanning/` | CodeQL, code scanning, PR securitychecks en GitHub security settings |
 | `bewijs/sbom-sca/` | Dependabot, SBOM, Snyk en SCA-screenshots |
