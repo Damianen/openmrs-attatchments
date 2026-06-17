@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import org.apache.commons.codec.binary.Base64;
+import java.text.SimpleDateFormat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +20,8 @@ import org.openmrs.ConceptDatatype;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.PatientIdentifier;
+import org.openmrs.PersonName;
 import org.openmrs.Visit;
 import org.openmrs.api.ObsService;
 import org.openmrs.api.context.Context;
@@ -222,5 +225,57 @@ public class AttachmentResourceTest {
 		        new byte[] { 0, 1, 2, 3 });
 
 		AttachmentResource.validateFileContentType(file, "dat", policy);
+	}
+
+	@Test
+	public void buildAttachmentUploadLogMessage_shouldNotIncludePatientPii() throws Exception {
+		Patient patient = new Patient();
+		patient.setPatientId(123);
+		patient.setUuid("patient-uuid-123");
+		patient.addName(new PersonName("Alice", "Secret", "Patient"));
+		patient.setBirthdate(new SimpleDateFormat("yyyy-MM-dd").parse("1990-01-02"));
+		patient.addIdentifier(new PatientIdentifier("MRN-12345", null, null));
+		Visit visit = new Visit();
+		visit.setUuid("visit-uuid-123");
+		Encounter encounter = new Encounter();
+		encounter.setUuid("encounter-uuid-123");
+
+		String message = AttachmentResource.buildAttachmentUploadLogMessage("SUCCESS", patient, visit, encounter,
+		    "attachment-uuid-123", "dat", "application/octet-stream", 20, null);
+
+		assertThat(message.contains("event=ATTACHMENT_UPLOAD"), equalTo(true));
+		assertThat(message.contains("patientUuid=patient-uuid-123"), equalTo(true));
+		assertThat(message.contains("visitUuid=visit-uuid-123"), equalTo(true));
+		assertThat(message.contains("encounterUuid=encounter-uuid-123"), equalTo(true));
+		assertThat(message.contains("attachmentUuid=attachment-uuid-123"), equalTo(true));
+		assertThat(message.contains("Alice"), equalTo(false));
+		assertThat(message.contains("Secret"), equalTo(false));
+		assertThat(message.contains("Patient"), equalTo(false));
+		assertThat(message.contains("1990"), equalTo(false));
+		assertThat(message.contains("id=123"), equalTo(false));
+		assertThat(message.contains("MRN-12345"), equalTo(false));
+	}
+
+	@Test
+	public void buildAttachmentLifecycleLogMessage_shouldNotIncludeDeleteReasonText() {
+		String message = AttachmentResource.buildAttachmentLifecycleLogMessage("ATTACHMENT_DELETE", "SUCCESS",
+		    "attachment-uuid-123", "encounter-uuid-123", null);
+
+		assertThat(message.contains("event=ATTACHMENT_DELETE"), equalTo(true));
+		assertThat(message.contains("attachmentUuid=attachment-uuid-123"), equalTo(true));
+		assertThat(message.contains("encounterUuid=encounter-uuid-123"), equalTo(true));
+		assertThat(message.contains("fileCaption"), equalTo(false));
+		assertThat(message.contains("patientName"), equalTo(false));
+	}
+
+	@Test
+	public void buildAttachmentUploadLogMessage_shouldSanitizeMultilineValues() {
+		String message = AttachmentResource.buildAttachmentUploadLogMessage("SUCCESS\nFAKE", null, null, null,
+		    "attachment-uuid-123", "dat", "application/octet-stream\r\nforged=true", 20, "bad\tvalue");
+
+		assertThat(message.contains("\n"), equalTo(false));
+		assertThat(message.contains("\r"), equalTo(false));
+		assertThat(message.contains("\t"), equalTo(false));
+		assertThat(message.contains("forged=true"), equalTo(true));
 	}
 }
