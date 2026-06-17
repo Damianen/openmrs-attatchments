@@ -100,7 +100,7 @@
 
 	<globalProperty>
 		<property>${project.parent.artifactId}.allowedFileExtensions</property>
-		<defaultValue/>
+		<defaultValue>pdf,png,jpg,jpeg</defaultValue>
 		<description>
 			Comma-separated list of case-insensitive file extensions that are allowed to be uploaded.
 		</description>

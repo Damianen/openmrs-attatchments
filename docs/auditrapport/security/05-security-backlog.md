@@ -71,11 +71,11 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Onderdeel | Invulling |
 |---|---|
 | Prioriteit | P1 |
-| Risico | `allowedFileExtensions` is standaard leeg, waardoor extensie- en MIME-controle alleen actief zijn als de allowlist gevuld is. |
+| Risico | Zonder veilige fallback kan een lege of verkeerd ingestelde allowlist ongewenste bestandstypen toelaten. |
 | Security requirement | Uploads moeten standaard worden beperkt tot bestandstypen die voor medische attachments logisch en toegestaan zijn. |
-| Maatregel | Stel een veilige default allowlist in, bijvoorbeeld `pdf,png,jpg,jpeg`, en valideer extensie en MIME altijd. |
+| Maatregel | Stel een veilige default allowlist in (`pdf,png,jpg,jpeg`) en valideer extensie en MIME altijd. |
 | Acceptatiecriteria | Toegestane bestanden worden geaccepteerd; `.exe`, scripts en MIME mismatch worden geweigerd; lege allowlist betekent niet automatisch "alles mag". |
-| Testbewijs | Uploadtests voor toegestaan bestand, verboden extensie, MIME mismatch en lege allowlist. |
+| Testbewijs | `AttachmentResourceTest` en `AttachmentRestControllerTest` controleren veilige default allowlist, verboden extensie, MIME mismatch en expliciet toegestane legacy uploads. |
 | NEN-7510 | A.8.28 Secure coding, A.8.29 Security testing. |
 
 ### SB-04 - Bewijs download-autorisatie
@@ -95,11 +95,11 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Onderdeel | Invulling |
 |---|---|
 | Prioriteit | P2 |
-| Risico | `AttachmentsServiceImpl` logt patientnaam, geboortedatum en identifiers. Dit is te veel PII voor normale applicatielogs. |
+| Risico | `AttachmentsServiceImpl` logde patientnaam, geboortedatum en identifiers. Dit was te veel PII voor normale applicatielogs. |
 | Security requirement | Logs moeten genoeg informatie geven voor audit, maar geen onnodige patientgegevens bevatten. |
 | Maatregel | Log alleen minimale technische identificatie, zoals event type, attachment/obs UUID, user id en timestamp. Vermijd naam, geboortedatum en identifiers in plaintext logs. |
 | Acceptatiecriteria | Logs bevatten geen patientnaam, geboortedatum of identifiers; upload/download/delete acties zijn wel auditbaar. |
-| Testbewijs | Unit test of log-capture test die controleert dat PII niet in logs staat; review van logregels. |
+| Testbewijs | `AttachmentsServiceImplTest` controleert dat patientnaam, geboortedatum, interne patient-id en identifiers niet in de attachment-fetch logtekst staan. |
 | NEN-7510 | A.8.15 Logging, A.8.28 Secure coding. |
 
 ### SB-06 - Maak base64 upload parsing robuust
@@ -169,7 +169,7 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 3. SB-03: upload allowlist en MIME-validatie verbeteren.
 4. SB-04: download-autorisatie aantoonbaar testen.
 5. SB-08: CI/security tests betrouwbaar maken.
-6. SB-05, SB-06 en SB-09 oppakken als tweede ronde codeverbeteringen.
+6. SB-09 oppakken als tweede ronde codeverbetering; SB-05 en SB-06 zijn inmiddels gemitigeerd en getest.
 7. SB-07 blijven opvolgen via SBOM/SCA.
 8. SB-10 pas afronden wanneer echte secrets beschikbaar zijn.
 
