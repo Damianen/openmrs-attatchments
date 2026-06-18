@@ -38,7 +38,7 @@ De OpenMRS Attachments Module verwerkt medische bijlagen en bijbehorende patient
 
 De belangrijkste risico's zitten in file access, uploadvalidatie, download-autorisatie, logging en dependencybeheer. Een eerder CodeQL-risico rond een raw `/download?path=` downloadpad is in de huidige broncode niet meer teruggevonden en is gekoppeld aan commit `e9e4aa0 fix CodeQL security alerts`. De huidige validatie gebruikt alleen UUID-gebaseerde attachment bytes en expliciete privilegechecks.
 
-De repository heeft al meerdere securitymaatregelen ingericht, zoals CodeQL/code scanning, Dependabot, SBOM-generatie, GitHub Environments, branch protection/rulesets, secret scanning en MFA-bewijs. Het pentestdocument is bijgewerkt naar 10 pentestcases. Tegelijk blijven er nog open acties over, vooral rond hertestbewijs, false-positive registratie, dependencytriage, productie-runtimebevestiging en securitytests als verplichte quality gate.
+De repository heeft al meerdere securitymaatregelen ingericht, zoals CodeQL/code scanning, Dependabot, SBOM-generatie, GitHub Environments, branch protection/rulesets, secret scanning en MFA-bewijs. Het pentestdocument is bijgewerkt naar 10 pentestcases. Voor de belangrijkste P1-pentestcases is before/after- en hertestbewijs toegevoegd in `bewijs/pentest/`. Tegelijk blijven er nog open acties over, vooral rond enkele P2-pentestbewijzen, false-positive registratie, dependencytriage, productie-runtimebevestiging en securitytests als verplichte quality gate.
 
 ## 4. Scope
 
@@ -181,6 +181,18 @@ De hoogste risico's uit de bestaande analyse zijn:
 | SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Gemitigeerd en getest |
 | SB-10 | Richt deployment secrets later veilig in via GitHub Environments | P3 | Moet nog gedaan worden |
 
+## 12.1 Pentest hertestbewijs
+
+Voor B3 is het hertestbewijs voor de belangrijkste P1-pentestcases aangevuld in `bewijs/pentest/`.
+
+| Pentestcase | Status | Bewijs |
+|---|---|---|
+| 2.1 Hardcoded AWS secrets | Gemitigeerd; hardcoded credentials verwijderd en zoekactie is schoon | `bewijs/pentest/2-1-secrets-before-hardcoded.png`; `bewijs/pentest/2-1-secrets-after-code-removed.png`; `bewijs/pentest/README.md` |
+| 2.2 Raw `/download?path=` path traversal | Gemitigeerd; download gebruikt UUID-flow en autorisatietests | `bewijs/pentest/2-2-raw-path-after-uuid-download-code.png`; `bewijs/pentest/2-2-raw-path-retest-authz-tests.png` |
+| 2.4 `DefaultAttachmentHandler` path traversal | Gemitigeerd; traversal wordt geweigerd | `bewijs/pentest/2-4-handler-path-traversal-after-code.png`; `bewijs/pentest/2-4-handler-path-traversal-retest-rejected.png` |
+| 2.5 Upload allowlist/MIME | Gemitigeerd; extensie- en MIME-controle getest | `bewijs/pentest/2-5-upload-allowlist-after-code.png`; `bewijs/pentest/2-5-upload-allowlist-mime-retest-rejected.png` |
+| 2.7 Download-autorisatie / IDOR | Gemitigeerd voor authenticatie/privilege; OpenMRS patienttoegang blijft runtimebeleid | `bewijs/pentest/2-7-download-idor-after-privilege-check.png`; `bewijs/pentest/2-7-download-idor-retest-forbidden-tests.png`; `bewijs/pentest/2-7-download-idor-retest-green-output.png` |
+
 ## 13. SCA/SBOM opvolging
 
 De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige bekende open dependencyrisico's zijn:
@@ -238,7 +250,7 @@ De volgende onderdelen zijn nog niet volledig afgerond of vereisen externe recht
 | Onderdeel | Actie |
 |---|---|
 | Pentest | `08-pentest.pdf` is bijgewerkt naar 10 pentestcases |
-| Pentest-bewijs | Hertestbewijs, screenshots, request/response of command output per kwetsbaarheid toevoegen waar dit nog ontbreekt |
+| Pentest-bewijs | P1-hertestbewijs is toegevoegd voor secrets, raw path download, handler path traversal, upload allowlist/MIME en download-autorisatie. Voor P2-cases zoals malformed base64, patientcontext, log injection en search metadata disclosure kan nog extra request/response- of testoutputbewijs worden toegevoegd |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
 | Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts blijven open totdat productie-runtime, Tomcatversie en endpoint-exposure door owner zijn bevestigd |
 | Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding, base64 parsing en veilige logging zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en de baseline is beoordeeld; Maven Tests moet nog als required check worden geselecteerd |

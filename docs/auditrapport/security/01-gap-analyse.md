@@ -61,3 +61,22 @@ Er is logging aanwezig om te registreren welke bestanden worden opgevraagd, wat 
 **Status:** Deze bevinding is in de code gemitigeerd. `AttachmentsServiceImpl` logt nu alleen minimale technische context voor het ophalen van attachments. `AttachmentsServiceImplTest` controleert dat patientnaam, geboortedatum, interne patient-id en identifiers niet in de logtekst staan.
 
 Daarnaast mist er audit-logging bij kritieke acties; er wordt in AttachmentBytesResource.java helemaal niets gelogd wanneer een bestand via de /download functie wordt opgehaald.
+
+## 4. Geprioriteerde non-compliance lijst
+
+Onderstaande lijst bundelt de belangrijkste afwijkingen uit de gap-analyse, pentest, SCA/SBOM-triage en auditdocumentatie. De volgorde is gebaseerd op risico voor vertrouwelijkheid, integriteit en aantoonbaarheid richting NEN-7510.
+
+| Prioriteit | Non-compliance | NEN-7510-control | Status | Vervolgactie |
+|---|---|---|---|---|
+| 1 | Hardcoded credential-achtige waarden stonden in broncode. | A.8.5, A.8.25, A.8.28 | Opgelost | Hardcoded waarden zijn verwijderd uit `AttachmentsActivator.java`; hertestbewijs staat in `bewijs/pentest/`. |
+| 2 | Raw path download/path traversal kon leiden tot arbitrary file read. | A.8.3, A.8.28, A.8.29 | Opgelost | UUID-downloadflow, privilegecheck en regressietests zijn toegevoegd; bewijs staat in pentest- en CodeQL-documentatie. |
+| 3 | File access in attachment handler had onvoldoende traversal-bescherming. | A.8.28, A.8.29 | Opgelost | Path normalization/root-check en regressietests zijn toegevoegd. |
+| 4 | Uploadvalidatie kon te ruim zijn bij lege allowlist of MIME mismatch. | A.8.28, A.8.29 | Opgelost | Veilige default allowlist, extensiecontrole, MIME-controle en tests zijn toegevoegd. |
+| 5 | Download-autorisatie was onvoldoende expliciet bewezen op moduleniveau. | A.8.3, A.8.5, A.8.29 | Gedeeltelijk opgelost | Expliciete `View Attachments` check en regressietests zijn toegevoegd; patienttoegang blijft afhankelijk van OpenMRS runtimebeleid. |
+| 6 | Logging bevatte te veel patient-PII of was onvoldoende veilig tegen vervuilde logregels. | A.8.15, A.8.28 | Gedeeltelijk opgelost | Logberichten zijn geminimaliseerd en getest voor onderzochte paden; volledige productie-auditlogging blijft vervolgwerk. |
+| 7 | Critical dependencyfinding Apache Tika XXE is nog niet definitief opgelost. | A.8.8, A.8.28, A.8.29 | Open | Java/OpenMRS upgradepad bepalen of veilige Java 8-compatibele oplossing vinden; compensating controls zijn tijdelijk toegevoegd. |
+| 8 | OpenMRS Core runtimealerts voor Zip Slip/path traversal zijn nog niet met productiegegevens bevestigd. | A.8.8, A.8.25, A.8.29 | Open | Owner moet runtimeversie, Tomcatversie en endpoint-exposure bevestigen. |
+| 9 | Maven Tests zijn ingericht maar nog niet als required check geselecteerd. | A.8.25, A.8.29 | Open door rechten | Repository-owner moet de groene Maven Tests check toevoegen aan branch/ruleset protection. |
+| 10 | Environment secrets en deploymentflow zijn nog niet volledig aantoonbaar ingericht. | A.8.5, A.8.25 | Open | Echte secrets pas toevoegen via GitHub Environments zodra ze beschikbaar zijn; production approval behouden. |
+
+Deze lijst is bedoeld als compact stuurdocument voor de resterende audit- en Sprint 4-acties. Details, bewijs en risicoweging staan in `risk-assessment-report.md`, `06-sca-sbom-triage.md`, `11-traceability-matrix.md` en `12-security-audit-eindrapport.md`.
