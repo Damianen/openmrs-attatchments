@@ -36,7 +36,7 @@ Out of scope:
 | Search attachments | Geeft patientmetadata en attachmentmetadata terug op basis van requestparameters. | Inputvalidatie aanwezig; extra REST-search auditlog niet toegevoegd vanwege dataminimalisatie. |
 | File storage handler | Leest bestanden uit storage op basis van bestandsnaam/pad. | Path traversal is gemitigeerd/getest voor handlerlogica; blijft belangrijk attack surface. |
 | Global properties | Configuratie bepaalt uploadlimieten, allowed extensions en denied filenames. | Relevante waarden moeten in OTAP/prod gecontroleerd worden. |
-| Dependencies/SCA | Kwetsbare libraries kunnen runtime-risico geven. | SCA/SBOM triage bestaat; Tika blijft open door Java 8-upgradepad. |
+| Dependencies/SCA | Kwetsbare libraries kunnen runtime-risico geven. | SCA/SBOM triage bestaat; Tika blijft open door Java 8-upgradepad; OpenMRS runtime is deels gecontroleerd via local/reference Docker image. |
 
 ## 4. Attack surface tabel
 
@@ -61,6 +61,7 @@ Out of scope:
 | OpenMRS privileges | Gebruikerrechten bepalen toegang tot patientdata. | Download of metadata kan breder toegankelijk zijn dan bedoeld. | Kritieke download heeft expliciete privilegecheck; search/delete nog beoordelen. |
 | UUID parameters | UUIDs verwijzen naar de juiste patient, visit, encounter of attachment. | IDOR of verkeerde patientcontext. | Patient/visit/encounter mismatchtests behouden en uitbreiden waar nodig. |
 | Tika MIME-detectie | Gedetecteerde MIME past bij werkelijke bestandsinhoud. | MIME spoofing of parserkwetsbaarheid. | Compensating controls behouden; Tika upgradepad open houden. |
+| OpenMRS runtime image | De module draait in de OpenMRS/Tomcat runtime die door Docker of productie wordt geleverd. | Compile-time dependency alerts kunnen afwijken van de echte runtime; kwetsbare endpoints kunnen per omgeving verschillen. | Local/reference image is gecontroleerd: OpenMRS 2.7.6, Tomcat 9.0.109; echte productie-image/tag nog door owner bevestigen. |
 | Global properties | Admin-config is correct en niet te ruim. | Lege/te ruime allowlist of uploadlimieten. | Veilige defaults, configcontrole en bewijs in CI/prod opnemen. |
 | Attachment file storage | Complex obs metadata verwijst naar bestanden binnen attachment-root. | Path traversal of uitlezen van serverbestanden. | Path normalization/root-checks en regressietests behouden. |
 | GitHub Actions | CI draait op elke PR en checks blokkeren merge. | Kwetsbare code kan zonder tests binnenkomen. | Maven Tests als required check selecteren na eerste workflow-run. |

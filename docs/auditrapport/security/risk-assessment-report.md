@@ -185,8 +185,8 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 | ID | Finding | Package | Status |
 |---|---|---|---|
 | SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Besluit: oplossen; upgrade naar 3.2.2 getest maar geblokkeerd door Java 8/class file 52.0; upload allowlist/MIME als compensating control toegevoegd |
-| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; overzichtsbewijs aanwezig; runtime exposure controleren |
-| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; overzichtsbewijs aanwezig; runtime/Tomcat-versie controleren |
+| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden met runtimebewijs; lokale reference image `3.5.0` gebruikt OpenMRS `2.7.6`; eigen prod-compose zet `MODULE_WEB_ADMIN=false` en modules read-only; echte productie-image/tag nog bevestigen |
+| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden met runtimebewijs; lokale reference image `3.5.0` gebruikt Tomcat `9.0.109`; echte productie-exposure nog bevestigen |
 
 SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. Snyk-bewijs is aanwezig via `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` en `bewijs/sbom-sca/snyk-artifact-upload-success.png`, waarin te zien is dat de workflow succesvol draait en dat `snyk-sca.json` en `snyk-code.json` als artifact worden geupload.
 
@@ -237,7 +237,7 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest | Pentest afronden en daarna pas resultaten verwerken in een apart pentestdocument of als bijlage |
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
-| Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts open houden totdat runtime exposure is gecontroleerd |
+| Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts hebben runtimebewijs voor local/reference image, maar blijven open totdat productie-image/tag en endpoint-exposure door owner zijn bevestigd |
 | Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding, base64 parsing en veilige logging zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en de baseline is beoordeeld; Maven Tests moet nog als required check worden geselecteerd |
 | CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
 
