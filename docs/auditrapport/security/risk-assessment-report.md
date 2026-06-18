@@ -9,7 +9,7 @@
 | Datum | 16 juni 2026 |
 | Scope | Attachments module, REST endpoints, file storage, logging, CI/CD en dependencies |
 | Methode | CIA/BIV, STRIDE, kans x impact en NEN-7510:2024-2 koppeling |
-| Pentest | Nog niet opgenomen; pentest is nog niet afgerond |
+| Pentest | Apart document aanwezig: `docs/auditrapport/08-pentest.pdf`; nog aanvullen met hertest/resultaten voordat het als definitief bewijs wordt opgevoerd |
 
 ## 2. Gebruikte bronnen
 
@@ -27,6 +27,7 @@ Dit rapport is gebaseerd op de documenten en bewijzen die al in het project aanw
 | `07-risicomatrix-bow-tie.md` | Risicomatrix en bow-tie voor applicatie- en CI/CD-risico's |
 | `false-positive-beleid.md` | Werkwijze voor false positives |
 | `bewijs/` | Security-bewijs voor repository access, scanning en SBOM/SCA |
+| `docs/auditrapport/08-pentest.pdf` | Apart pentestdocument; nog aanvullen met hertest/resultaten |
 | `docs/architecture/` | C4-diagrammen voor systeem-, container- en componentniveau |
 
 ## 3. Managementsamenvatting
@@ -55,7 +56,7 @@ Out of scope:
 - volledige OpenMRS Core implementatie;
 - productie-infrastructuur buiten de repository;
 - echte productiepatientdata;
-- pentestresultaten, omdat de pentest nog niet is afgerond.
+- definitieve pentestresultaten, omdat het pentestdocument nog hertest/resultaten moet bevatten voordat het als afgerond bewijs geldt.
 
 ## 5. Assets en crown jewels
 
@@ -102,11 +103,11 @@ Voor patientdata geldt dat rode risico's niet onbehandeld mogen blijven. Oranje 
 | T02 | Path traversal via `DefaultAttachmentHandler.getAttachmentByPath` | Vertrouwelijkheid, integriteit | 4 | 4 | 16 | Gemitigeerd en getest |
 | T03 | Upload allowlist is te ruim als configuratie leeg is | Integriteit, beschikbaarheid | 4 | 4 | 16 | Gemitigeerd en getest |
 | T04 | Download-autorisatie moet expliciet bewezen worden | Vertrouwelijkheid | 3 | 5 | 15 | Gedeeltelijk gemitigeerd en getest met expliciete privilegecheck |
-| T05 | Patientgegevens kunnen in logs terechtkomen | Vertrouwelijkheid, traceerbaarheid | 3 | 4 | 12 | Gemitigeerd en getest voor attachment-fetch logging |
+| T05 | Patientgegevens kunnen in logs terechtkomen | Vertrouwelijkheid, traceerbaarheid | 3 | 4 | 12 | Gemitigeerd en getest voor attachment-fetch, upload/delete, bytes-download en concept-search lookup logging |
 | T06 | Malformed base64 upload kan onduidelijk foutgedrag geven | Beschikbaarheid, integriteit | 3 | 3 | 9 | Gemitigeerd en getest |
 | T07 | Legacy dependencies kunnen bekende CVE's bevatten | Vertrouwelijkheid, integriteit, beschikbaarheid | 3 | 4 | 12 | Gedeeltelijk afgerond; SCA-besluiten staan, runtimecontrole blijft open |
 | T08 | Deployment secrets en deployment workflow zijn nog niet volledig bewezen | Integriteit | 2 | 4 | 8 | Moet nog gedaan worden |
-| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Maven Tests workflow is ingericht; required-check selectie volgt na eerste run |
+| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Maven Tests workflow en JaCoCo coverage artifacts zijn ingericht en bewezen; required-check selectie blijft open omdat dit repository-owner rechten vraagt. Harde coverage threshold wordt in Sprint 3 bewust niet afgedwongen; coverage wordt via 60% reviewnorm en PR-review beoordeeld |
 | T10 | Attachmentmetadata kan verkeerd gekoppeld worden aan patient/context | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Gemitigeerd en getest voor upload patient/visit/encounter mismatch |
 
 ## 8. Hoogste risico's
@@ -158,7 +159,7 @@ De hoogste risico's uit de bestaande analyse zijn:
 | Path traversal in attachment handler | Bestand buiten attachment storage lezen of manipuleren | `Path.resolve().normalize()` gebruiken en controleren dat pad binnen attachment-root blijft | A.8.3, A.8.28, A.8.29 | Gemitigeerd met root-directory check en regressietests |
 | Upload allowlist bypass | Ongewenste bestandstypen uploaden of MIME-controle omzeilen | Veilige default allowlist instellen en extensie/MIME altijd valideren | A.8.28, A.8.29 | Gemitigeerd met veilige default allowlist, verplichte extensie/MIME-validatie en regressietests |
 | Download-autorisatie niet expliciet bewezen | Onbevoegde gebruiker kan mogelijk attachment bytes downloaden | Expliciete privilegecheck of integratietest toevoegen | A.8.3, A.8.5, A.8.29 | Gedeeltelijk gemitigeerd met expliciete `View Attachments` check en regressietests |
-| PII in logs | Patientnaam, geboortedatum of identifiers kunnen breder zichtbaar worden | Dataminimalisatie toepassen en auditlogging scheiden van applicatielogs | A.8.15, A.8.28 | Gemitigeerd met minimale attachment-fetch logtekst en regressietest |
+| PII in logs | Patientnaam, geboortedatum of identifiers kunnen breder zichtbaar worden | Dataminimalisatie toepassen en auditlogging scheiden van applicatielogs | A.8.15, A.8.28 | Gemitigeerd met minimale logtekst voor attachment-fetch, upload/delete, bytes-download en concept-search lookup plus regressietests |
 | Malformed base64 upload | Onvoorspelbaar foutgedrag of denial of service | Aparte parser met duidelijke validatie en negatieve tests | A.8.28, A.8.29 | Gemitigeerd met data-URI/base64-validatie en regressietests |
 | Apache Tika XXE | Malicious bestand kan mogelijk XXE-triggeren bij bestandsdetectie/parsing | Tika upgraden naar gepatchte versie en upload-aanvalsvector beperken met allowlist/MIME-controle | A.8.8, A.8.28, A.8.29 | Besluit: oplossen; directe upgrade naar 3.2.2 getest maar geblokkeerd door Java 8; compensating control toegevoegd |
 | OpenMRS Core dependency alerts | Runtime kan kwetsbaar zijn voor path traversal of Zip Slip | Runtimeversie controleren, OpenMRS Core upgraden en endpoint-exposure beperken | A.8.8, A.8.25, A.8.29 | Besluit: open houden; runtime exposure nog controleren |
@@ -171,10 +172,10 @@ De hoogste risico's uit de bestaande analyse zijn:
 | SB-02 | Maak file access in handlers veilig met path normalization en root-check | P0 | Gemitigeerd en getest |
 | SB-03 | Stel veilige upload allowlist in en valideer extensie en MIME altijd | P1 | Gemitigeerd en getest |
 | SB-04 | Bewijs download-autorisatie met tests of expliciete check | P1 | Gedeeltelijk gemitigeerd en getest voor authenticatie/privilege |
-| SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Gemitigeerd en getest voor attachment-fetch logging |
+| SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Gemitigeerd en getest voor attachment-fetch, upload/delete, bytes-download en concept-search lookup logging |
 | SB-06 | Maak base64 upload parsing robuust | P2 | Gemitigeerd en getest |
 | SB-07 | Triager dependency- en SBOM-findings | P2 | Besluiten afgerond; uitvoering/open runtimeonderzoek moet nog gedaan worden |
-| SB-08 | Maak securitytests betrouwbaar in CI | P2 | Maven test workflow toegevoegd; na eerste PR-run als required check opnemen in ruleset |
+| SB-08 | Maak securitytests en coverage betrouwbaar in CI | P2 | Maven test workflow en JaCoCo artifacts toegevoegd; coveragebaseline beoordeeld; Maven Tests nog als required check opnemen |
 | SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Gemitigeerd en getest |
 | SB-10 | Richt deployment secrets later veilig in via GitHub Environments | P3 | Moet nog gedaan worden |
 
@@ -185,10 +186,10 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 | ID | Finding | Package | Status |
 |---|---|---|---|
 | SCA-001 | Apache Tika XXE, CVE-2025-66516 | `org.apache.tika:tika-core` 2.9.2 | Besluit: oplossen; upgrade naar 3.2.2 getest maar geblokkeerd door Java 8/class file 52.0; upload allowlist/MIME als compensating control toegevoegd |
-| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; overzichtsbewijs aanwezig; runtime exposure controleren |
-| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; overzichtsbewijs aanwezig; runtime/Tomcat-versie controleren |
+| SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; repository-prodconfig zet `MODULE_WEB_ADMIN=false` en modules read-only; echte productie-runtime en endpoint-exposure nog door owner bevestigen |
+| SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; Tomcatversie en echte productie-exposure staan niet aantoonbaar in deze repository en moeten door owner worden bevestigd |
 
-SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. Snyk-bewijs is aanwezig via `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` en `bewijs/sbom-sca/snyk-artifact-upload-success.png`, waarin te zien is dat de workflow succesvol draait en dat `snyk-sca.json` en `snyk-code.json` als artifact worden geupload.
+SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. De uitgepakte CycloneDX JSON staat in `bewijs/sbom-sca/sbom.cdx.json` en bevat 130 componenten voor `org.openmrs.module:attachments:3.5.0`. Snyk-bewijs is aanwezig via `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` en `bewijs/sbom-sca/snyk-artifact-upload-success.png`, waarin te zien is dat de workflow succesvol draait en dat `snyk-sca.json` en `snyk-code.json` als artifact worden geupload.
 
 ## 14. Kostenraming
 
@@ -212,15 +213,16 @@ Totale eerste inschatting: **49-77 uur**, oftewel **EUR 2.940-4.620** bij EUR 60
 
 ## 15. Security tests als quality gate
 
-Securitytests zijn technisch ingericht als PR workflow, maar de nieuwe Maven Tests check moet na de eerste GitHub Actions run nog als verplichte required check in de ruleset worden geselecteerd.
+Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow genereert ook JaCoCo coverage rapporten als artifacts. De eerste GitHub Actions run is groen en toont beide coverage artifacts. De JaCoCo HTML-overzichten zijn inhoudelijk beoordeeld: API line coverage is 74% en OMOD security line coverage is 66%. De Maven Tests check moet nog als verplichte required check in de ruleset worden geselecteerd door iemand met repository-owner rechten. Voor Sprint 3 is besloten om geen harde coverage threshold af te dwingen; coverage wordt beoordeeld via de 60% reviewnorm, artifactbewijs en PR-review.
 
 | Stap | Gewenste inrichting | Status |
 |---|---|---|
-| Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht in `.github/workflows/maven-tests.yml`; eerste GitHub Actions run en required-check selectie volgen na push |
+| Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht en groen bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; required-check selectie volgt nog |
+| Coverage rapport | JaCoCo rapporten worden gemaakt voor API en OMOD security tests | Ingericht en artifacts bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; baseline beoordeeld in `bewijs/scanning/jacoco-api-coverage-overview.png` en `bewijs/scanning/jacoco-omod-security-coverage-overview.png`; geen harde threshold in Sprint 3 |
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie, patientbinding en base64 parsing | Aanwezig voor path traversal, uploadvalidatie/MIME, download-autorisatie, patient/visit/encounter mismatch en base64 parsing |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
-| SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15` |
+| SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15`; `sbom.cdx.json` staat in de bewijsmap |
 | Required checks | Branch protection/ruleset verplicht de security/testchecks | Aanwezig voor bestaande PR-checks; nieuwe Maven testjob moet na eerste run nog als required check worden geselecteerd |
 | Review policy | Pull requests naar `main` hebben minimaal 1 review nodig | Aanwezig; `bewijs/repository-access/dependabot-prs-review-required.png` toont dependency PR's met `Review required` |
 | Fail policy | Foutieve checks blokkeren merge; high/critical findings vragen expliciete triage | Aanwezig voor PR-checks; inhoudelijke triage staat in `06-sca-sbom-triage.md` |
@@ -233,11 +235,11 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 
 | Onderdeel | Actie |
 |---|---|
-| Pentest | Pentest afronden en daarna pas resultaten verwerken in een apart pentestdocument of als bijlage |
-| Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
+| Pentest | `08-pentest.pdf` aanvullen met reproduceerbare teststappen, resultaat per test en hertest na mitigatie |
+| Pentest-bewijs | Screenshots, request/response of command output per kwetsbaarheid toevoegen zodra de hertest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
-| Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts open houden totdat runtime exposure is gecontroleerd |
-| Securitytests | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding en base64 parsing zijn toegevoegd; Maven workflow is ingericht en moet na eerste run nog als required check worden geselecteerd |
+| Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts blijven open totdat productie-runtime, Tomcatversie en endpoint-exposure door owner zijn bevestigd |
+| Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding, base64 parsing en veilige logging zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en de baseline is beoordeeld; Maven Tests moet nog als required check worden geselecteerd |
 | CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
 
 ## 17. Conclusie

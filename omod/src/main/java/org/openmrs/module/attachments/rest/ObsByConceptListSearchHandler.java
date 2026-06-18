@@ -70,7 +70,7 @@ public class ObsByConceptListSearchHandler implements SearchHandler {
 			Patient patient = context.getPatientService().getPatientByUuid(patientUuid);
 			
 			if (patient == null) {
-				log.warn("Patient \"" + patientUuid + "\" was not found. Returning empty set.");
+				log.warn(buildLookupLogMessage("patient", "not_found"));
 				return new EmptySearchResult();
 			}
 			
@@ -136,7 +136,7 @@ public class ObsByConceptListSearchHandler implements SearchHandler {
 			}
 
 			if (concept == null) {
-				log.warn("Concept \"" + conceptStr + "\" was not found. Ignoring it.");
+				log.warn(buildLookupLogMessage("concept", "not_found"));
 			} else {
 				conceptList.add(concept);
 			}
@@ -144,6 +144,10 @@ public class ObsByConceptListSearchHandler implements SearchHandler {
 
 		return conceptList;
 		
+	}
+
+	static String buildLookupLogMessage(String entity, String result) {
+		return "event=ATTACHMENT_CONCEPT_SEARCH_LOOKUP entity=" + entity + " result=" + result;
 	}
 
 	private List<String> splitConceptList(String conceptListStr) {

@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Obs;
@@ -43,6 +44,7 @@ public class AttachmentBytesResource extends BaseRestController {
 	public void getFile(@PathVariable("uuid") String uuid, @RequestParam(required = false, value = "view") String view,
 	        HttpServletResponse response) throws ResponseException {
 		if (!Context.isAuthenticated() || !Context.hasPrivilege(AttachmentsConstants.VIEW_ATTACHMENTS)) {
+			log.warn(buildAttachmentBytesLogMessage("DENIED", uuid, view, null, 0, "missing_privilege"));
 			throw new APIAuthenticationException("User is not allowed to view attachment bytes");
 		}
 		
@@ -82,13 +84,27 @@ public class AttachmentBytesResource extends BaseRestController {
 				bytes = byteString.getBytes(StandardCharsets.UTF_8);
 			}
 			response.getOutputStream().write(bytes);
+			log.info(buildAttachmentBytesLogMessage("SUCCESS", uuid, view, mimeType, bytes.length, null));
 		}
 		catch (IOException ex) {
 			response.setStatus(500);
+			log.warn(buildAttachmentBytesLogMessage("FAILED", uuid, view, mimeType, 0, ex.getClass().getSimpleName()));
 			throw new GenericRestException("There was an error when downloading the attachment's bytes content."
 			        + " Perhaps the file content is corrupted.", ex);
 		}
 		
+	}
+
+	static String buildAttachmentBytesLogMessage(String result, String attachmentUuid, String view, String mimeType,
+	        long byteCount, String reason) {
+		return "event=ATTACHMENT_BYTES_DOWNLOAD result=" + logValue(result, "unknown") + " attachmentUuid="
+		        + logValue(attachmentUuid, "none") + " view=" + logValue(view, "default") + " mimeType="
+		        + logValue(mimeType, "unknown") + " byteCount=" + byteCount + " reason=" + logValue(reason, "none");
+	}
+
+	private static String logValue(String value, String defaultValue) {
+		String safeValue = StringUtils.defaultIfEmpty(value, defaultValue);
+		return safeValue.replace('\r', '_').replace('\n', '_').replace('\t', '_');
 	}
 	
 	public static String getExtension(String fileName, String mimeType) {

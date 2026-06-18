@@ -21,6 +21,8 @@ import io.swagger.models.properties.StringProperty;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
@@ -64,6 +66,8 @@ public class AttachmentResource extends DataDelegatingCrudResource<Attachment> i
 
 	protected static final String REASON = "REST web service";
 
+	private final Log log = LogFactory.getLog(getClass());
+
 	static final List<String> DEFAULT_ALLOWED_EXTENSIONS = Collections
 	        .unmodifiableList(Arrays.asList("pdf", "png", "jpg", "jpeg"));
 
@@ -95,91 +99,150 @@ public class AttachmentResource extends DataDelegatingCrudResource<Attachment> i
 	@Override
 	protected void delete(Attachment delegate, String reason, RequestContext context) throws ResponseException {
 		String encounterUuid = delegate.getObs().getEncounter() != null ? delegate.getObs().getEncounter().getUuid() : null;
-		Context.getObsService().voidObs(delegate.getObs(), REASON);
-		voidEncounterIfEmpty(Context.getEncounterService(), encounterUuid);
+		try {
+			Context.getObsService().voidObs(delegate.getObs(), REASON);
+			voidEncounterIfEmpty(Context.getEncounterService(), encounterUuid);
+			log.info(buildAttachmentLifecycleLogMessage("ATTACHMENT_DELETE", "SUCCESS", delegate.getObs().getUuid(),
+			    encounterUuid, null));
+		}
+		catch (RuntimeException ex) {
+			log.warn(buildAttachmentLifecycleLogMessage("ATTACHMENT_DELETE", "FAILED", delegate.getObs().getUuid(),
+			    encounterUuid, ex.getClass().getSimpleName()));
+			throw ex;
+		}
 	}
 
 	@Override
 	public void purge(Attachment delegate, RequestContext context) throws ResponseException {
 		String encounterUuid = delegate.getObs().getEncounter() != null ? delegate.getObs().getEncounter().getUuid() : null;
-		Context.getObsService().purgeObs(delegate.getObs());
-		voidEncounterIfEmpty(Context.getEncounterService(), encounterUuid);
+		try {
+			Context.getObsService().purgeObs(delegate.getObs());
+			voidEncounterIfEmpty(Context.getEncounterService(), encounterUuid);
+			log.info(buildAttachmentLifecycleLogMessage("ATTACHMENT_PURGE", "SUCCESS", delegate.getObs().getUuid(),
+			    encounterUuid, null));
+		}
+		catch (RuntimeException ex) {
+			log.warn(buildAttachmentLifecycleLogMessage("ATTACHMENT_PURGE", "FAILED", delegate.getObs().getUuid(),
+			    encounterUuid, ex.getClass().getSimpleName()));
+			throw ex;
+		}
 	}
 
 	@Override
 	public Object upload(MultipartFile file, RequestContext context) throws ResponseException, IOException {
-		// Prepare Parameters
-		Patient patient = Context.getPatientService().getPatientByUuid(context.getParameter("patient"));
-		Visit visit = Context.getVisitService().getVisitByUuid(context.getParameter("visit"));
-		Encounter encounter = Context.getEncounterService().getEncounterByUuid(context.getParameter("encounter"));
-		Provider provider = Context.getProviderService().getProviderByUuid(context.getParameter("provider"));
-		String fileCaption = context.getParameter("fileCaption");
-		String instructions = context.getParameter("instructions");
-		String base64Content = context.getParameter("base64Content");
+		Patient patient = null;
+		Visit visit = null;
+		Encounter encounter = null;
+		String fileExtension = "unknown";
 
-		AttachmentsContext ctx = Context.getRegisteredComponent(AttachmentsConstants.COMPONENT_ATT_CONTEXT,
-		    AttachmentsContext.class);
+		try {
+			// Prepare Parameters
+			patient = Context.getPatientService().getPatientByUuid(context.getParameter("patient"));
+			visit = Context.getVisitService().getVisitByUuid(context.getParameter("visit"));
+			encounter = Context.getEncounterService().getEncounterByUuid(context.getParameter("encounter"));
+			Provider provider = Context.getProviderService().getProviderByUuid(context.getParameter("provider"));
+			String fileCaption = context.getParameter("fileCaption");
+			String instructions = context.getParameter("instructions");
+			String base64Content = context.getParameter("base64Content");
 
-		if (base64Content != null) {
-			file = new Base64MultipartFile(base64Content, file.getName(), file.getOriginalFilename());
+			AttachmentsContext ctx = Context.getRegisteredComponent(AttachmentsConstants.COMPONENT_ATT_CONTEXT,
+			    AttachmentsContext.class);
+
+			if (base64Content != null) {
+				file = new Base64MultipartFile(base64Content, file.getName(), file.getOriginalFilename());
+			}
+			// Verify File Size
+			if (ctx.getMaxUploadFileSize() * 1024 * 1024 < (double) file.getSize()) {
+				throw new IllegalRequestException("The file exceeds the maximum size");
+			}
+
+			// Verify file extension
+			String fileName = file.getOriginalFilename();
+			fileExtension = getFileExtension(fileName);
+			AllowedExtensionPolicy allowedExtensionPolicy = getAllowedExtensionPolicy(ctx.getAllowedFileExtensions());
+			validateFileExtension(fileExtension, allowedExtensionPolicy);
+
+			// Verify file name
+			String[] deniedFileNames = ctx.getDeniedFileNames();
+			if (deniedFileNames != null && deniedFileNames.length > 0 && Arrays.stream(deniedFileNames)
+			        .filter(s -> s != null && !s.isEmpty()).anyMatch(fileName::equalsIgnoreCase)) {
+				throw new IllegalRequestException("The file name is not valid");
+			}
+
+			// Verify Parameters
+			if (patient == null) {
+				throw new IllegalRequestException("A patient parameter must be provided when uploading an attachment.");
+			}
+
+			if (StringUtils.isEmpty(instructions))
+				instructions = ValueComplex.INSTRUCTIONS_DEFAULT;
+
+			// Verify Parameters
+			validateUploadContext(patient, visit, encounter);
+
+			// Verify Content Type
+			validateFileContentType(file, fileExtension, allowedExtensionPolicy);
+
+			if (visit != null && encounter == null) {
+				encounter = ctx.getAttachmentEncounter(patient, visit, provider);
+			}
+
+			if (encounter != null && visit == null) {
+				visit = encounter.getVisit();
+			}
+
+			// Save Obs
+			Obs obs;
+			switch (getContentFamily(file.getContentType())) {
+				case IMAGE:
+					obs = Context.getRegisteredComponent(AttachmentsConstants.COMPONENT_COMPLEXOBS_SAVER,
+					    ComplexObsSaver.class).saveImageAttachment(visit, patient, encounter, fileCaption, file, instructions);
+					break;
+
+				case OTHER:
+				default:
+					obs = Context.getRegisteredComponent(AttachmentsConstants.COMPONENT_COMPLEXOBS_SAVER,
+					    ComplexObsSaver.class).saveOtherAttachment(visit, patient, encounter, fileCaption, file, instructions);
+					break;
+			}
+
+			log.info(buildAttachmentUploadLogMessage("SUCCESS", patient, visit, encounter, obs.getUuid(), fileExtension,
+			    file.getContentType(), file.getSize(), null));
+
+			return ConversionUtil.convertToRepresentation(obs,
+			    new CustomRepresentation(AttachmentsConstants.REPRESENTATION_OBS));
 		}
-		// Verify File Size
-		if (ctx.getMaxUploadFileSize() * 1024 * 1024 < (double) file.getSize()) {
-			throw new IllegalRequestException("The file exceeds the maximum size");
+		catch (ResponseException ex) {
+			log.warn(buildAttachmentUploadLogMessage("DENIED", patient, visit, encounter, null, safeFileExtension(file),
+			    safeContentType(file), safeSize(file), ex.getClass().getSimpleName()));
+			throw ex;
 		}
-
-		// Verify file extension
-		String fileName = file.getOriginalFilename();
-		String fileExtension = getFileExtension(fileName);
-		AllowedExtensionPolicy allowedExtensionPolicy = getAllowedExtensionPolicy(ctx.getAllowedFileExtensions());
-		validateFileExtension(fileExtension, allowedExtensionPolicy);
-
-		// Verify file name
-		String[] deniedFileNames = ctx.getDeniedFileNames();
-		if (deniedFileNames != null && deniedFileNames.length > 0 && Arrays.stream(deniedFileNames)
-		        .filter(s -> s != null && !s.isEmpty()).anyMatch(fileName::equalsIgnoreCase)) {
-			throw new IllegalRequestException("The file name is not valid");
+		catch (IOException ex) {
+			log.warn(buildAttachmentUploadLogMessage("DENIED", patient, visit, encounter, null, safeFileExtension(file),
+			    safeContentType(file), safeSize(file), ex.getClass().getSimpleName()));
+			throw ex;
 		}
-
-		// Verify Parameters
-		if (patient == null) {
-			throw new IllegalRequestException("A patient parameter must be provided when uploading an attachment.");
+		catch (RuntimeException ex) {
+			log.warn(buildAttachmentUploadLogMessage("DENIED", patient, visit, encounter, null, safeFileExtension(file),
+			    safeContentType(file), safeSize(file), ex.getClass().getSimpleName()));
+			throw ex;
 		}
+	}
 
-		if (StringUtils.isEmpty(instructions))
-			instructions = ValueComplex.INSTRUCTIONS_DEFAULT;
+	static String buildAttachmentUploadLogMessage(String result, Patient patient, Visit visit, Encounter encounter,
+	        String attachmentUuid, String fileExtension, String contentType, long fileSize, String reason) {
+		return "event=ATTACHMENT_UPLOAD result=" + logValue(result, "unknown") + " patientUuid=" + safeUuid(patient)
+		        + " visitUuid=" + safeUuid(visit) + " encounterUuid=" + safeUuid(encounter) + " attachmentUuid="
+		        + logValue(attachmentUuid, "none") + " fileExtension=" + logValue(fileExtension, "unknown")
+		        + " contentType=" + logValue(contentType, "unknown") + " fileSizeBytes=" + fileSize + " reason="
+		        + logValue(reason, "none");
+	}
 
-		// Verify Parameters
-		validateUploadContext(patient, visit, encounter);
-
-		// Verify Content Type
-		validateFileContentType(file, fileExtension, allowedExtensionPolicy);
-
-		if (visit != null && encounter == null) {
-			encounter = ctx.getAttachmentEncounter(patient, visit, provider);
-		}
-
-		if (encounter != null && visit == null) {
-			visit = encounter.getVisit();
-		}
-
-		// Save Obs
-		Obs obs;
-		switch (getContentFamily(file.getContentType())) {
-			case IMAGE:
-				obs = Context.getRegisteredComponent(AttachmentsConstants.COMPONENT_COMPLEXOBS_SAVER, ComplexObsSaver.class)
-				        .saveImageAttachment(visit, patient, encounter, fileCaption, file, instructions);
-				break;
-
-			case OTHER:
-			default:
-				obs = Context.getRegisteredComponent(AttachmentsConstants.COMPONENT_COMPLEXOBS_SAVER, ComplexObsSaver.class)
-				        .saveOtherAttachment(visit, patient, encounter, fileCaption, file, instructions);
-				break;
-		}
-
-		return ConversionUtil.convertToRepresentation(obs,
-		    new CustomRepresentation(AttachmentsConstants.REPRESENTATION_OBS));
+	static String buildAttachmentLifecycleLogMessage(String event, String result, String attachmentUuid,
+	        String encounterUuid, String reason) {
+		return "event=" + logValue(event, "unknown") + " result=" + logValue(result, "unknown") + " attachmentUuid="
+		        + logValue(attachmentUuid, "none") + " encounterUuid=" + logValue(encounterUuid, "none") + " reason="
+		        + logValue(reason, "none");
 	}
 
 	static void validateUploadContext(Patient patient, Visit visit, Encounter encounter) {
@@ -215,6 +278,40 @@ public class AttachmentResource extends DataDelegatingCrudResource<Attachment> i
 			throw new IllegalRequestException("The file extension is required");
 		}
 		return fileName.substring(idx + 1).toLowerCase(Locale.ROOT);
+	}
+
+	private static String safeFileExtension(MultipartFile file) {
+		try {
+			return file == null ? "unknown" : getFileExtension(file.getOriginalFilename());
+		}
+		catch (RuntimeException ex) {
+			return "unknown";
+		}
+	}
+
+	private static String safeContentType(MultipartFile file) {
+		return file == null ? "unknown" : StringUtils.defaultIfBlank(file.getContentType(), "unknown");
+	}
+
+	private static long safeSize(MultipartFile file) {
+		return file == null ? -1 : file.getSize();
+	}
+
+	private static String safeUuid(Patient patient) {
+		return patient == null ? "none" : logValue(patient.getUuid(), "none");
+	}
+
+	private static String safeUuid(Visit visit) {
+		return visit == null ? "none" : logValue(visit.getUuid(), "none");
+	}
+
+	private static String safeUuid(Encounter encounter) {
+		return encounter == null ? "none" : logValue(encounter.getUuid(), "none");
+	}
+
+	private static String logValue(String value, String defaultValue) {
+		String safeValue = StringUtils.defaultIfBlank(value, defaultValue);
+		return safeValue.replace('\r', '_').replace('\n', '_').replace('\t', '_');
 	}
 
 	static AllowedExtensionPolicy getAllowedExtensionPolicy(String[] allowedExtensions) {
