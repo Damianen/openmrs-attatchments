@@ -129,6 +129,16 @@ public class AttachmentsConstants {
 	public static final String GP_RESTWS_MAX_RESULTS_DEFAULT_GLOBAL_PROPERTY_NAME = "webservices.rest.maxResultsDefault";
 	
 	/*
+	 * Storage backend (read from the environment, never persisted in the database).
+	 * See StorageConfig.
+	 */
+	public static final String ENV_STORAGE_ACCESS_KEY = "ATTACHMENTS_STORAGE_ACCESS_KEY";
+	
+	public static final String ENV_STORAGE_SECRET_KEY = "ATTACHMENTS_STORAGE_SECRET_KEY";
+	
+	public static final String ENV_STORAGE_BUCKET = "ATTACHMENTS_STORAGE_BUCKET";
+	
+	/*
 	 * REST
 	 */
 	public static final String REPRESENTATION_OBS = "(uuid:ref,comment:ref,obsDatetime:ref)";
