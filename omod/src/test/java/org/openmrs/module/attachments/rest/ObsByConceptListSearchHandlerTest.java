@@ -150,6 +150,24 @@ public class ObsByConceptListSearchHandlerTest extends MainResourceControllerTes
 		Assert.assertEquals(3, conceptList.size());
 	}
 
+	@Test
+	public void buildLookupLogMessage_shouldNotIncludePatientOrConceptInput() {
+		String patientUuid = "abcd-e";
+		String conceptValue = "abc1-mks-123a";
+
+		String patientMessage = ObsByConceptListSearchHandler.buildLookupLogMessage("patient", "not_found");
+		String conceptMessage = ObsByConceptListSearchHandler.buildLookupLogMessage("concept", "not_found");
+
+		Assert.assertTrue(patientMessage.contains("event=ATTACHMENT_CONCEPT_SEARCH_LOOKUP"));
+		Assert.assertTrue(patientMessage.contains("entity=patient"));
+		Assert.assertFalse(patientMessage.contains(patientUuid));
+		Assert.assertFalse(patientMessage.contains(conceptValue));
+		Assert.assertTrue(conceptMessage.contains("event=ATTACHMENT_CONCEPT_SEARCH_LOOKUP"));
+		Assert.assertTrue(conceptMessage.contains("entity=concept"));
+		Assert.assertFalse(conceptMessage.contains(patientUuid));
+		Assert.assertFalse(conceptMessage.contains(conceptValue));
+	}
+
 	@Override
 	public String getUuid() {
 		return "be48cdcb-6a76-47e3-9f2e-2635032f3a9a";

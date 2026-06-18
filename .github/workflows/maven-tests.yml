@@ -50,7 +50,7 @@ jobs:
         run: mvn -pl api "-Dformatter.skip=true" "-DskipTests" install
 
       - name: Run OMOD security regression tests
-        run: mvn -pl omod "-Dformatter.skip=true" "-Dtest=AttachmentResourceTest,AttachmentRestControllerTest,AttachmentBytesResourceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test jacoco:report
+        run: mvn -pl omod "-Dformatter.skip=true" "-Dtest=AttachmentResourceTest,AttachmentRestControllerTest,AttachmentBytesResourceTest,ObsByConceptListSearchHandlerTest" "-Dsurefire.failIfNoSpecifiedTests=false" test jacoco:report
 
       - name: Upload OMOD security coverage report
         uses: actions/upload-artifact@v4

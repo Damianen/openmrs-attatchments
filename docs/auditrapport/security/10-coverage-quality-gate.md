@@ -19,7 +19,7 @@ Coverage is geen volledige securitygarantie. Het bewijst vooral dat belangrijke 
 De JaCoCo plugin staat in de parent `pom.xml`. De workflow draait:
 
 - `mvn -pl api "-Dformatter.skip=true" test jacoco:report`
-- `mvn -pl omod "-Dformatter.skip=true" "-Dtest=AttachmentResourceTest,AttachmentRestControllerTest,AttachmentBytesResourceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test jacoco:report`
+- `mvn -pl omod "-Dformatter.skip=true" "-Dtest=AttachmentResourceTest,AttachmentRestControllerTest,AttachmentBytesResourceTest,ObsByConceptListSearchHandlerTest" "-Dsurefire.failIfNoSpecifiedTests=false" test jacoco:report`
 
 Daarna uploadt GitHub Actions de rapporten als artifacts.
 
@@ -53,11 +53,20 @@ De workflowcommando's zijn lokaal uitgevoerd met JaCoCo. Dit geeft de volgende e
 | Module | Tests | Line coverage | Branch coverage | Beoordeling |
 |---|---|---:|---:|---|
 | `api` | 13 tests | 74.3% | 29.0% | Boven de 60% startnorm voor line coverage; branch coverage blijft verbeterpunt. |
-| `omod` security subset | 46 tests | 66.6% | 57.0% | Boven de 60% startnorm voor de security-relevante OMOD testset. |
+| `omod` security subset | 57 tests | 79.2% | 69.8% | Boven de 60% startnorm voor de security-relevante OMOD testset. |
 
-De CI-run moet deze baseline nog bevestigen met artifacts uit GitHub Actions.
+De CI-run bevestigt dat beide rapporten als artifact worden bewaard. De gedownloade HTML-overzichten zijn daarna inhoudelijk bekeken en als bewijs toegevoegd. Na het toevoegen van de concept-search loggingtest is de lokale OMOD-baseline hoger dan het eerder vastgelegde CI-screenshot; de volgende PR-run ververst het artifact opnieuw.
 
-## 6. Quality gate
+## 6. CI artifact baseline
+
+De GitHub Actions artifacts zijn geopend via het JaCoCo HTML-overzicht. Dit geeft de volgende afgeronde waarden:
+
+| Artifact | Screenshot | Instruction coverage | Line coverage | Branch coverage | Beoordeling |
+|---|---|---:|---:|---:|---|
+| `api-coverage-report` | `bewijs/scanning/jacoco-api-coverage-overview.png` | 75% | 74% | 28% | Boven de 60% startnorm; branch coverage blijft verbeterpunt. |
+| `omod-security-coverage-report` | `bewijs/scanning/jacoco-omod-security-coverage-overview.png` | 66% | 66% | 56% | Boven de 60% startnorm voor de security-relevante OMOD testset. |
+
+## 7. Quality gate
 
 | Check | Status | Toelichting |
 |---|---|---|
@@ -69,30 +78,32 @@ De CI-run moet deze baseline nog bevestigen met artifacts uit GitHub Actions.
 
 We kiezen eerst voor meten en rapporteren. Een harde fail threshold wordt pas toegevoegd nadat de eerste CI-run laat zien wat de realistische baseline is. Dit voorkomt dat legacy-code zonder analyse de pipeline blokkeert, terwijl de securityrelevante testdekking wel zichtbaar wordt.
 
-## 7. Bewijs
+## 8. Bewijs
 
 De eerste succesvolle GitHub Actions run is vastgelegd in:
 
 - `bewijs/scanning/maven-tests-coverage-artifacts-success.png`
+- `bewijs/scanning/jacoco-api-coverage-overview.png`
+- `bewijs/scanning/jacoco-omod-security-coverage-overview.png`
 
-Deze screenshot toont:
+Deze screenshots tonen:
 
 - groene `Maven Tests` workflow;
 - artifact `api-coverage-report`;
 - artifact `omod-security-coverage-report`;
 - beide jobs `api-tests` en `omod-security-tests` succesvol afgerond.
+- API JaCoCo-overzicht met 74% line coverage;
+- OMOD JaCoCo-overzicht met 66% line coverage.
 
-Eventueel kan later nog een extra screenshot van het JaCoCo HTML-overzicht worden toegevoegd, maar het belangrijkste CI-artifactbewijs is aanwezig.
-
-## 8. Open acties
+## 9. Open acties
 
 | Actie | Status |
 |---|---|
 | Eerste CI-run met coverage artifacts uitvoeren | Uitgevoerd; bewijs in `bewijs/scanning/maven-tests-coverage-artifacts-success.png` |
-| Coveragepercentages uit artifact vergelijken met lokale baseline | Gedeeltelijk; artifacts zijn aanwezig, lokale baseline staat in dit document |
+| Coveragepercentages uit artifact vergelijken met lokale baseline | Uitgevoerd; JaCoCo HTML-screenshots staan in de bewijsmap |
 | Beslissen of harde minimumdrempel nodig is | Moet nog gedaan worden na baseline |
-| Screenshots toevoegen aan bewijsmap | Uitgevoerd voor workflow en artifacts |
+| Screenshots toevoegen aan bewijsmap | Uitgevoerd voor workflow, artifacts en JaCoCo HTML-overzichten |
 
-## 9. Conclusie
+## 10. Conclusie
 
-JaCoCo maakt de testcoverage zichtbaar en de GitHub Actions workflow bewaart de rapporten als artifact. Daarmee is Sprint 3 beter aantoonbaar: testresultaten zijn niet alleen groen, maar ook meetbaar. De volgende stap is bepalen of een harde coverage threshold nodig is nadat de coverage artifacts inhoudelijk zijn beoordeeld.
+JaCoCo maakt de testcoverage zichtbaar en de GitHub Actions workflow bewaart de rapporten als artifact. Daarmee is Sprint 3 beter aantoonbaar: testresultaten zijn niet alleen groen, maar ook meetbaar. De artifactrapporten zijn inhoudelijk beoordeeld en zitten boven de gekozen 60% startnorm. De volgende stap is bepalen of een harde coverage threshold nodig is.

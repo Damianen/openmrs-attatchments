@@ -34,8 +34,8 @@ Niet elk event hoeft in applicatielogs terecht te komen. Voor privacygevoelige m
 | `AttachmentsServiceImpl.java:141` | Geen complex concepts geconfigureerd | `warn` zonder patientdata | Acceptabel |
 | `AttachmentsContext.java:286` | Fout bij parsen map global property | `error` met propertynaam en exception | Acceptabel |
 | `AttachmentsContext.java:316` | Fout bij parsen list global property | `error` met propertynaam en exception | Acceptabel |
-| `ObsByConceptListSearchHandler.java:73` | Patient UUID niet gevonden bij concept-search | `warn` met patient UUID | Twijfelachtig; UUID kan gevoelige context zijn |
-| `ObsByConceptListSearchHandler.java:139` | Concept niet gevonden | `warn` met concept query | Acceptabel mits geen vrije patientdata |
+| `ObsByConceptListSearchHandler.java:73` | Patient UUID niet gevonden bij concept-search | `warn` met generiek event/entity/result | Acceptabel; patient UUID wordt niet gelogd |
+| `ObsByConceptListSearchHandler.java:139` | Concept niet gevonden | `warn` met generiek event/entity/result | Acceptabel; conceptwaarde wordt niet gelogd |
 | `AttachmentBytesResource.java` | Download attachment bytes | Auditlog voor success, denied en failed download zonder patient-PII | Aanwezig; unit test controleert veilige logberichtinhoud |
 | `AttachmentResource.upload` | Upload success/failure | Auditlog voor success en denied upload zonder patient-PII | Aanwezig; unit test controleert veilige logberichtinhoud |
 | `AttachmentResource.delete` | Attachment verwijderen/voiden | Auditlog voor delete/purge success en failed zonder patient-PII | Aanwezig; unit test controleert veilige logberichtinhoud |
@@ -49,8 +49,8 @@ Niet elk event hoeft in applicatielogs terecht te komen. Voor privacygevoelige m
 | LG-03 | AS-01 Upload | Patient/visit/encounter mismatch | Ja | Hoog: verkeerde koppeling kan datalek betekenen | Aanwezig | Mismatch valt onder denied upload logging zonder patientdetails |
 | LG-04 | AS-06 Download bytes | Succesvolle download | Ja | Hoog: toegang tot patientbestand | Aanwezig | Download wordt gelogd met attachment UUID, view, MIME en bytecount |
 | LG-05 | AS-06 Download bytes | Download geweigerd door ontbrekend privilege | Ja | Middel | Aanwezig | Geweigerde toegang wordt gelogd zonder attachmentinhoud of patientdata |
-| LG-06 | AS-04 Search | Search attachments voor patient | Ja via `AttachmentsServiceImpl` bij service-call | Middel: patient identifiers mogen niet in log | Gedeeltelijk aanwezig | Bestaande PII-test behouden; uitbreiden naar logniveau als mogelijk |
-| LG-07 | AS-05 Concept search | Patient UUID niet gevonden | Ja, met patient UUID | Middel | Herbeoordelen | Overweeg minder specifieke logtekst of hash/technische request context |
+| LG-06 | AS-04 Search | Search attachments voor patient | Ja via `AttachmentsServiceImpl` bij service-call | Middel: patient identifiers mogen niet in log | Aanwezig | Geen extra REST-search auditlog toegevoegd om dubbele patientcontext in applicatielogs te voorkomen |
+| LG-07 | AS-05 Concept search | Patient/concept lookup niet gevonden | Ja, zonder patient UUID of conceptwaarde | Laag | Aanwezig | Logt alleen event, entity en result; regressietest bewijst dat user input niet in logtekst staat |
 | LG-08 | AS-03 Delete | Attachment verwijderen/voiden | Ja | Hoog: integriteitsimpact | Aanwezig | Delete/purge wordt gelogd met attachment UUID en encounter UUID |
 | LG-09 | AS-09 Config | Fout bij global property parsing | Ja | Laag | Aanwezig | Geen actie behalve test/controle waar nodig |
 | LG-10 | Module lifecycle | Start/stop/refresh | Ja | Laag | Aanwezig | Geen actie nodig |
@@ -80,13 +80,26 @@ Sprint 3 vraagt tests voor logging. De minimale set is:
 | Download success logging | Bewijst dat download van bytes auditbaar is zonder PII | Aanwezig via veilige logbericht-unit test |
 | Download denied logging | Bewijst dat ontbrekende privileges traceerbaar zijn zonder PII | Aanwezig via denied download logpad en veilige logbericht-unit test |
 | Delete/void logging | Bewijst dat verwijderactie auditbaar is zonder PII | Aanwezig via veilige logbericht-unit test |
+| Concept-search lookup logging | Bewijst dat patient UUID en conceptwaarde niet in de lookup-logtekst komen | Aanwezig in `ObsByConceptListSearchHandlerTest` |
 
-## 7. Voorlopige conclusie
+## 7. Search metadata auditlogging besluit
 
-De module heeft nu veilige logging voor attachment-fetches, upload, download bytes, delete/purge en algemene module/config-events. De belangrijkste resterende Sprint 3-aandachtspunten zijn:
+Voor `AttachmentResource.doSearch` wordt geen extra REST-level auditlog toegevoegd in deze sprint. De reden is dat search-requests patient-, visit- en encountercontext bevatten. Extra requestlogging kan daardoor snel dezelfde patientcontext dubbel vastleggen.
 
-1. concept-search logging met patient UUID herbeoordelen;
-2. bepalen of search metadata extra auditlogging nodig heeft bovenop de bestaande attachment-fetch logging;
-3. bepalen of integratietests met echte log capture nodig zijn naast de huidige unit tests op veilige logberichtinhoud.
+De bestaande service-level logging in `AttachmentsServiceImpl` geeft al technische zichtbaarheid op attachment-fetches en is getest op het vermijden van patientnaam, geboortedatum, interne patient-id en patient identifiers. Daarom is de huidige keuze:
 
-De volgende stap is per gap te kiezen of we logging in code toevoegen of expliciet onderbouwen dat OpenMRS platform-audit dit event al afdekt. Voor de events die we zelf loggen, moeten regressietests bewijzen dat geen gevoelige patientdata in de logtekst terechtkomt.
+| Onderdeel | Besluit |
+|---|---|
+| Extra REST-search auditlog | Niet toevoegen in Sprint 3 |
+| Reden | Dataminimalisatie; voorkomen dat patientcontext dubbel in applicatielogs komt |
+| Huidige maatregel | Service-level fetch logging zonder patient-PII plus regressietest |
+| Herbeoordelen wanneer | Als OpenMRS platform-audit onvoldoende blijkt of als er een expliciete audit-eis komt voor search-requests |
+
+## 8. Voorlopige conclusie
+
+De module heeft nu veilige logging voor attachment-fetches, upload, download bytes, delete/purge, concept-search lookup failures en algemene module/config-events. De belangrijkste resterende Sprint 3-aandachtspunten zijn:
+
+1. bepalen of integratietests met echte log capture nodig zijn naast de huidige unit tests op veilige logberichtinhoud;
+2. later controleren of OpenMRS platform-audit voldoende zichtbaarheid geeft voor search-requests.
+
+Voor de events die we zelf loggen, bewijzen regressietests dat geen gevoelige patientdata in de logtekst terechtkomt.

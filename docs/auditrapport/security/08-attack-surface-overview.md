@@ -33,7 +33,7 @@ Out of scope:
 |---|---|---|
 | Upload attachment | User-controlled bestand, filename, MIME/content en patient/visit/encounter parameters komen binnen via REST. | Gedeeltelijk gemitigeerd met allowlist, MIME/extensievalidatie en regressietests. |
 | Download attachment bytes | Geeft patientbestanden terug. Onjuiste autorisatie leidt direct tot datalek. | Gemitigeerd met privilegecheck, regressietest en veilige auditlogging. |
-| Search attachments | Geeft patientmetadata en attachmentmetadata terug op basis van requestparameters. | Inputvalidatie aanwezig; logging nog verder beoordelen. |
+| Search attachments | Geeft patientmetadata en attachmentmetadata terug op basis van requestparameters. | Inputvalidatie aanwezig; extra REST-search auditlog niet toegevoegd vanwege dataminimalisatie. |
 | File storage handler | Leest bestanden uit storage op basis van bestandsnaam/pad. | Path traversal is gemitigeerd/getest voor handlerlogica; blijft belangrijk attack surface. |
 | Global properties | Configuratie bepaalt uploadlimieten, allowed extensions en denied filenames. | Relevante waarden moeten in OTAP/prod gecontroleerd worden. |
 | Dependencies/SCA | Kwetsbare libraries kunnen runtime-risico geven. | SCA/SBOM triage bestaat; Tika blijft open door Java 8-upgradepad. |
@@ -45,8 +45,8 @@ Out of scope:
 | AS-01 | Upload attachment | REST upload | `AttachmentResource.upload`, `AttachmentResource.java:110` | Bestand, filename, content type, patient, visit, encounter, provider, fileCaption, instructions | OpenMRS REST auth, `AttachmentsContext`, Tika, OpenMRS patient/visit/encounter services | Malicious upload, MIME bypass, verkeerde patientkoppeling, DoS door grote bestanden | Ja | Max size, default allowlist, extensie/MIME-validatie, denied filenames, patient/visit/encounter checks, regressietests en veilige auditlogging |
 | AS-02 | Attachment metadata ophalen | REST read | `AttachmentResource.getByUniqueId`, `AttachmentResource.java:84` | UUID | OpenMRS REST resource security, ObsService | Onbevoegde metadata-inzage | Ja | Framework security; expliciete autorisatie blijft afhankelijk van OpenMRS REST laag |
 | AS-03 | Attachment verwijderen | REST delete | `AttachmentResource.delete`, `AttachmentResource.java:96` | UUID en delete reason | OpenMRS REST auth, ObsService | Onterecht voiden/verwijderen van patientattachment | Ja | OpenMRS REST auth en veilige auditlogging voor delete/purge |
-| AS-04 | Attachment zoeken | REST search | `AttachmentResource.doSearch`, `AttachmentResource.java:390` | patient, visit, encounter, includeVoided, includeEncounterless | OpenMRS services, `AttachmentsService` | Metadata disclosure, brede search, verkeerde contextfiltering | Ja | Contextvalidatie bij upload; searchlogging en expliciete autorisatie nog beoordelen |
-| AS-05 | Search by concept list | REST search handler | `ObsByConceptListSearchHandler`, `ObsByConceptListSearchHandler.java:40` | patient UUID, concept queryparameters | OpenMRS patient/concept services | ReDoS/query abuse, metadata disclosure, logging van identifiers | Middel | CodeQL regex finding eerder beoordeeld; logging van onbekende patient/concept nog beoordelen |
+| AS-04 | Attachment zoeken | REST search | `AttachmentResource.doSearch`, `AttachmentResource.java:390` | patient, visit, encounter, includeVoided, includeEncounterless | OpenMRS services, `AttachmentsService` | Metadata disclosure, brede search, verkeerde contextfiltering | Ja | Contextvalidatie bij upload; service-level fetch logging zonder patient-PII; geen extra REST-search log vanwege dataminimalisatie |
+| AS-05 | Search by concept list | REST search handler | `ObsByConceptListSearchHandler`, `ObsByConceptListSearchHandler.java:40` | patient UUID, concept queryparameters | OpenMRS patient/concept services | ReDoS/query abuse, metadata disclosure, logging van identifiers | Middel | CodeQL regex finding eerder beoordeeld; lookup logging aangepast zodat patient UUID en conceptwaarde niet in logs komen |
 | AS-06 | Download attachment bytes | REST download | `AttachmentBytesResource.getBytes`, `AttachmentBytesResource.java:42` | Attachment UUID | OpenMRS auth, `Context.hasPrivilege`, ObsService, complex obs handler | IDOR, datalek van attachment bytes | Ja | Expliciete privilegecheck, regressietest en veilige auditlogging aanwezig |
 | AS-07 | File storage lezen | File system | `DefaultAttachmentHandler.getAttachmentByPath`, `DefaultAttachmentHandler.java:73` | Bestandsnaam/pad uit complex obs metadata | Attachment directory, Java file/path APIs | Path traversal, arbitrary file read | Ja | Path traversal tests/fix aanwezig in Sprint 2 |
 | AS-08 | File storage schrijven | File system | `ComplexObsSaver`, attachment handlers | Uploadbestand en afgeleide bestandsnaam | Attachment directory, OpenMRS complex obs | Overschrijven, ongewenste content, storage DoS | Ja | Uploadvalidatie, max file size en handlers; verdere logging nog beoordelen |
@@ -79,5 +79,5 @@ De grootste attack surface zit bij upload, download, search en file storage. Dit
 
 1. threat model bijwerken met deze attack surface;
 2. logging gap analyse afronden per event;
-3. loggingtests toevoegen voor succesvolle en mislukte kritieke acties;
-4. coverage zichtbaar maken in CI.
+3. loggingtests behouden voor succesvolle en mislukte kritieke acties;
+4. coverage zichtbaar houden in CI en JaCoCo artifacts blijven beoordelen.

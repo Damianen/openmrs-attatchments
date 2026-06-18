@@ -102,7 +102,7 @@ Voor patientdata geldt dat rode risico's niet onbehandeld mogen blijven. Oranje 
 | T02 | Path traversal via `DefaultAttachmentHandler.getAttachmentByPath` | Vertrouwelijkheid, integriteit | 4 | 4 | 16 | Gemitigeerd en getest |
 | T03 | Upload allowlist is te ruim als configuratie leeg is | Integriteit, beschikbaarheid | 4 | 4 | 16 | Gemitigeerd en getest |
 | T04 | Download-autorisatie moet expliciet bewezen worden | Vertrouwelijkheid | 3 | 5 | 15 | Gedeeltelijk gemitigeerd en getest met expliciete privilegecheck |
-| T05 | Patientgegevens kunnen in logs terechtkomen | Vertrouwelijkheid, traceerbaarheid | 3 | 4 | 12 | Gemitigeerd en getest voor attachment-fetch, upload/delete en bytes-download logging |
+| T05 | Patientgegevens kunnen in logs terechtkomen | Vertrouwelijkheid, traceerbaarheid | 3 | 4 | 12 | Gemitigeerd en getest voor attachment-fetch, upload/delete, bytes-download en concept-search lookup logging |
 | T06 | Malformed base64 upload kan onduidelijk foutgedrag geven | Beschikbaarheid, integriteit | 3 | 3 | 9 | Gemitigeerd en getest |
 | T07 | Legacy dependencies kunnen bekende CVE's bevatten | Vertrouwelijkheid, integriteit, beschikbaarheid | 3 | 4 | 12 | Gedeeltelijk afgerond; SCA-besluiten staan, runtimecontrole blijft open |
 | T08 | Deployment secrets en deployment workflow zijn nog niet volledig bewezen | Integriteit | 2 | 4 | 8 | Moet nog gedaan worden |
@@ -158,7 +158,7 @@ De hoogste risico's uit de bestaande analyse zijn:
 | Path traversal in attachment handler | Bestand buiten attachment storage lezen of manipuleren | `Path.resolve().normalize()` gebruiken en controleren dat pad binnen attachment-root blijft | A.8.3, A.8.28, A.8.29 | Gemitigeerd met root-directory check en regressietests |
 | Upload allowlist bypass | Ongewenste bestandstypen uploaden of MIME-controle omzeilen | Veilige default allowlist instellen en extensie/MIME altijd valideren | A.8.28, A.8.29 | Gemitigeerd met veilige default allowlist, verplichte extensie/MIME-validatie en regressietests |
 | Download-autorisatie niet expliciet bewezen | Onbevoegde gebruiker kan mogelijk attachment bytes downloaden | Expliciete privilegecheck of integratietest toevoegen | A.8.3, A.8.5, A.8.29 | Gedeeltelijk gemitigeerd met expliciete `View Attachments` check en regressietests |
-| PII in logs | Patientnaam, geboortedatum of identifiers kunnen breder zichtbaar worden | Dataminimalisatie toepassen en auditlogging scheiden van applicatielogs | A.8.15, A.8.28 | Gemitigeerd met minimale logtekst voor attachment-fetch, upload/delete en bytes-download plus regressietests |
+| PII in logs | Patientnaam, geboortedatum of identifiers kunnen breder zichtbaar worden | Dataminimalisatie toepassen en auditlogging scheiden van applicatielogs | A.8.15, A.8.28 | Gemitigeerd met minimale logtekst voor attachment-fetch, upload/delete, bytes-download en concept-search lookup plus regressietests |
 | Malformed base64 upload | Onvoorspelbaar foutgedrag of denial of service | Aparte parser met duidelijke validatie en negatieve tests | A.8.28, A.8.29 | Gemitigeerd met data-URI/base64-validatie en regressietests |
 | Apache Tika XXE | Malicious bestand kan mogelijk XXE-triggeren bij bestandsdetectie/parsing | Tika upgraden naar gepatchte versie en upload-aanvalsvector beperken met allowlist/MIME-controle | A.8.8, A.8.28, A.8.29 | Besluit: oplossen; directe upgrade naar 3.2.2 getest maar geblokkeerd door Java 8; compensating control toegevoegd |
 | OpenMRS Core dependency alerts | Runtime kan kwetsbaar zijn voor path traversal of Zip Slip | Runtimeversie controleren, OpenMRS Core upgraden en endpoint-exposure beperken | A.8.8, A.8.25, A.8.29 | Besluit: open houden; runtime exposure nog controleren |
@@ -171,10 +171,10 @@ De hoogste risico's uit de bestaande analyse zijn:
 | SB-02 | Maak file access in handlers veilig met path normalization en root-check | P0 | Gemitigeerd en getest |
 | SB-03 | Stel veilige upload allowlist in en valideer extensie en MIME altijd | P1 | Gemitigeerd en getest |
 | SB-04 | Bewijs download-autorisatie met tests of expliciete check | P1 | Gedeeltelijk gemitigeerd en getest voor authenticatie/privilege |
-| SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Gemitigeerd en getest voor attachment-fetch, upload/delete en bytes-download logging |
+| SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Gemitigeerd en getest voor attachment-fetch, upload/delete, bytes-download en concept-search lookup logging |
 | SB-06 | Maak base64 upload parsing robuust | P2 | Gemitigeerd en getest |
 | SB-07 | Triager dependency- en SBOM-findings | P2 | Besluiten afgerond; uitvoering/open runtimeonderzoek moet nog gedaan worden |
-| SB-08 | Maak securitytests en coverage betrouwbaar in CI | P2 | Maven test workflow en JaCoCo artifacts toegevoegd; na eerste PR-run als required check opnemen en coveragebaseline beoordelen |
+| SB-08 | Maak securitytests en coverage betrouwbaar in CI | P2 | Maven test workflow en JaCoCo artifacts toegevoegd; coveragebaseline beoordeeld; Maven Tests nog als required check opnemen |
 | SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Gemitigeerd en getest |
 | SB-10 | Richt deployment secrets later veilig in via GitHub Environments | P3 | Moet nog gedaan worden |
 
@@ -212,12 +212,12 @@ Totale eerste inschatting: **49-77 uur**, oftewel **EUR 2.940-4.620** bij EUR 60
 
 ## 15. Security tests als quality gate
 
-Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow genereert ook JaCoCo coverage rapporten als artifacts. De eerste GitHub Actions run is groen en toont beide coverage artifacts. De Maven Tests check moet nog als verplichte required check in de ruleset worden geselecteerd en de coveragebaseline moet nog worden beoordeeld voor een eventuele harde threshold.
+Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow genereert ook JaCoCo coverage rapporten als artifacts. De eerste GitHub Actions run is groen en toont beide coverage artifacts. De JaCoCo HTML-overzichten zijn inhoudelijk beoordeeld: API line coverage is 74% en OMOD security line coverage is 66%. De Maven Tests check moet nog als verplichte required check in de ruleset worden geselecteerd; een harde coverage threshold blijft een vervolgbesluit.
 
 | Stap | Gewenste inrichting | Status |
 |---|---|---|
 | Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht en groen bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; required-check selectie volgt nog |
-| Coverage rapport | JaCoCo rapporten worden gemaakt voor API en OMOD security tests | Ingericht en artifacts bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; inhoudelijke baselinebeoordeling volgt nog |
+| Coverage rapport | JaCoCo rapporten worden gemaakt voor API en OMOD security tests | Ingericht en artifacts bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; baseline beoordeeld in `bewijs/scanning/jacoco-api-coverage-overview.png` en `bewijs/scanning/jacoco-omod-security-coverage-overview.png` |
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie, patientbinding en base64 parsing | Aanwezig voor path traversal, uploadvalidatie/MIME, download-autorisatie, patient/visit/encounter mismatch en base64 parsing |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
@@ -238,7 +238,7 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 | Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
 | Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts open houden totdat runtime exposure is gecontroleerd |
-| Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding en base64 parsing zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en moet na eerste run nog als required check/baseline worden beoordeeld |
+| Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding, base64 parsing en veilige logging zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en de baseline is beoordeeld; Maven Tests moet nog als required check worden geselecteerd |
 | CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
 
 ## 17. Conclusie

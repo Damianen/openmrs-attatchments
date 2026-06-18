@@ -136,7 +136,7 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 | Security requirement | Security tests en coverage moeten reproduceerbaar draaien in CI voordat wijzigingen worden gemerged. |
 | Maatregel | Splits CI in duidelijke jobs voor `api` en `omod` security regressietests en upload JaCoCo coverage rapporten als artifact. |
 | Acceptatiecriteria | CI draait groen voor relevante testjobs; falende securitytest blokkeert merge; testresultaat en coverage artifact zijn zichtbaar in GitHub Actions. |
-| Testbewijs | `.github/workflows/maven-tests.yml` draait `mvn -pl api test jacoco:report` en omod security regressietests met `jacoco:report`; required-check selectie en coveragebaseline volgen na eerste workflow-run. |
+| Testbewijs | `.github/workflows/maven-tests.yml` draait `mvn -pl api test jacoco:report` en omod security regressietests met `jacoco:report`; workflow-artifact en JaCoCo HTML-overzichten staan in `bewijs/scanning/`; required-check selectie volgt nog. |
 | NEN-7510 | A.8.25 Secure SDLC, A.8.29 Security testing. |
 
 ### SB-09 - Versterk metadata- en patientbinding bij upload
@@ -170,7 +170,7 @@ Voor patientdata is de risicobereidheid laag. Risico's die direct kunnen leiden 
 2. SB-02: file access in handlers veilig maken.
 3. SB-03: upload allowlist en MIME-validatie verbeteren.
 4. SB-04: download-autorisatie aantoonbaar testen.
-5. SB-08: Maven test workflow na eerste run als required check opnemen en coverage artifacts beoordelen.
+5. SB-08: Maven test workflow als required check opnemen; coverage artifacts zijn beoordeeld.
 6. SB-05, SB-06 en SB-09 zijn inmiddels gemitigeerd en getest.
 7. SB-07 blijven opvolgen via SBOM/SCA.
 8. SB-10 pas afronden wanneer echte secrets beschikbaar zijn.
