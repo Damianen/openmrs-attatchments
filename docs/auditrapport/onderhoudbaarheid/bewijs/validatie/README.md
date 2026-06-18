@@ -1,21 +1,21 @@
 # Bewijs: validatie van de A3-refactor
 
-Screenshots horend bij [`../../validatie.md`](../../validatie.md). De instructies om ze te
-maken (URL's, wat erop moet staan) staan in sectie 7 van dat document. Maak telkens een
-**vóór-A3**- en een **na-A3**-opname.
+Screenshots horend bij [`../../validatie.md`](../../validatie.md). De URL's en wat er per
+opname op moet staan, staan in sectie 7 van dat document.
 
 Project: organisatie `damianen`, key `Damianen_openmrs-attatchments`.
+De cijfers zijn al in `validatie.md` ingevuld op basis van de SonarCloud-oogst
+(ná PR #33 op `main`, commit `2931cf42`); deze screenshots zijn het visuele bewijs.
 
 ## Checklist
 
-- [ ] `sonar-hotspot-before.png` — Security Hotspots vóór A3: de hardcoded-credentials-hotspot
-      op `AttachmentsActivator.java` (de `AKIA-…`-regel), status open/To Review.
-- [ ] `sonar-hotspot-after.png` — Security Hotspots ná A3: hotspot weg (0 open) of Fixed.
-- [ ] `sonar-overview-after.png` — Projecthome ná A3 met **Quality Gate Passed** en de
-      measure-tegels (ratings, Hotspots Reviewed 100%, Coverage, Duplications).
-- [ ] `sonar-overview-before.png` *(optioneel)* — dezelfde tegels op de pre-A3-analyse.
-- [ ] `sonar-activity-hotspots.png` *(optioneel)* — activiteitengrafiek met dalend
-      aantal Security Hotspots/Vulnerabilities rond de A3-analyse.
-
-Noteer bij elke opname ook de getallen en vul daarmee de tabellen in sectie 4 van
-`validatie.md` in.
+- [ ] `sonar-na-main-summary.png` — Summary `main`: Quality Gate **Passed**, Security **A**,
+      0 open issues.
+- [ ] `sonar-na-hotspots-leeg.png` — Security Hotspots `main`: **100% reviewed**, 0 "to review".
+- [ ] `sonar-na-issues-security-0.png` — Issues `main` gefilterd op Security: **0** open
+      security issues.
+- [ ] `sonar-pr33-summary.png` — PR #33 Summary: Quality Gate **Passed**, 0 New Issues,
+      0 New Hotspots.
+- [ ] `sonar-voor-activity.png` *(optioneel/historisch)* — Activity-datapunt vóór commit
+      `99486699`. **Let op:** momenteel niet beschikbaar (Activity-pagina geeft een fout);
+      vermeld als meetlacune.

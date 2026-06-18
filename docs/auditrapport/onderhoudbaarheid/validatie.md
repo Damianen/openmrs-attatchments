@@ -107,34 +107,64 @@ Per testklasse (na A3):
 | `AttachmentsActivator` | 43/53 (81%) | De hardcoded-secret-velden zijn verwijderd; resterende dekking onveranderd. |
 | `EnvironmentSource` | interface | Geen uitvoerbare regels. |
 
-## 4. SonarCloud: before → after (in te vullen)
+## 4. SonarCloud: before → after
 
 > Organisatie `damianen`, project `Damianen_openmrs-attatchments`.
-> Vul de getallen hieronder in vanaf het SonarCloud-dashboard en plak de screenshots
-> volgens de checklist in sectie 7. "Vóór A3" = een analyse op een commit/branch
-> vóór de A3-merge; "Na A3" = de analyse op `main` ná de A3-merge.
+> Geoogst **ná** het mergen van PR #33 op `main` (commit `2931cf42`); de PR-cijfers komen
+> van de analyse op commit `99486699` (branch `security/storage-credentials-env`).
+
+**Meetlacune (eerlijk):** de **vóór-staat** is niet als snapshot in SonarCloud bewaard —
+de Activity-grafiek gaf een fout terug en er is geen historisch datapunt zichtbaar voor de
+commit vóór #33. De conclusie dat de security-bevinding is verdwenen, steunt daarom op twee
+directe waarnemingen: (a) de PR #33-analyse rapporteerde **0 new issues / 0 new hotspots**,
+en (b) de huidige `main` toont **0 open security issues** en **0 hotspots "to review"**.
+De "vóór"-waarden hieronder zijn dus afgeleid (≥1), geen gescreenshotte meting.
 
 ### 4.1 De kern-bevinding: hardcoded secret
 
-| Item | Vóór A3 | Na A3 | Bron-screenshot |
+| Item | Vóór A3 (afgeleid) | Na A3 (`main`, commit `2931cf42`) | Bron-screenshot |
 |---|---|---|---|
-| Hardcoded-credentials hotspot/issue op `AttachmentsActivator.java` (AWS access/secret key) | _(aanwezig — bv. status To Review / Open)_ | _(verdwenen / status Fixed)_ | `sonar-hotspot-before.png` → `sonar-hotspot-after.png` |
-| Aantal open Security Hotspots | _(in te vullen)_ | _(in te vullen)_ | idem |
-| Security Review Rating | _(in te vullen, bv. E)_ | _(in te vullen, bv. A)_ | overview |
+| Hardcoded-credentials-bevinding op `AttachmentsActivator.java` (AWS access/secret key) | aanwezig (≥1) | **verdwenen** | `sonar-na-hotspots-leeg.png`, `sonar-na-issues-security-0.png` |
+| Open Security issues | ≥1 | **0** | `sonar-na-issues-security-0.png` |
+| Security Hotspots "to review" | ≥1 | **0** (100% reviewed) | `sonar-na-hotspots-leeg.png` |
+| Security Rating | onbekend | **A** | `sonar-na-main-summary.png` |
 
-### 4.2 Overige dashboard-metrics (no-regression op kwaliteit)
+### 4.2 PR #33 — eigen analyse (commit `99486699`)
 
-| Metric | Vóór A3 | Na A3 | Verwachting |
-|---|---|---|---|
-| Quality Gate status | _(in te vullen)_ | _(Passed)_ | moet **Passed** zijn |
-| Bugs | _(in te vullen)_ | _(in te vullen)_ | gelijk of lager |
-| Vulnerabilities | _(in te vullen)_ | _(in te vullen)_ | gelijk of lager |
-| Code Smells | _(in te vullen)_ | _(in te vullen)_ | gelijk of lager |
-| Maintainability (SQALE) Rating | _(in te vullen)_ | _(in te vullen)_ | geen verslechtering |
-| Reliability Rating | _(in te vullen)_ | _(in te vullen)_ | geen verslechtering |
-| Security Rating | _(in te vullen)_ | _(in te vullen)_ | gelijk of beter |
-| Duplications % | _(in te vullen)_ | _(in te vullen)_ | gelijk of lager |
-| Coverage | _(in te vullen)_ | _(in te vullen)_ | gelijk of hoger |
+| Metric | Waarde op de PR |
+|---|---|
+| Quality Gate | ✅ Passed |
+| New Issues | 0 |
+| New Security Hotspots | 0 |
+| New Lines | 0 |
+| Duplications (estimated after merge) | 0,0% |
+
+Bron-screenshot: `sonar-pr33-summary.png`.
+
+### 4.3 Overige dashboard-metrics op `main` (no-regression op kwaliteit)
+
+Huidige waarden op `main`. Ze tonen dat A3 geen kwaliteit verslechterd heeft — en, zoals
+verwacht voor een secrets→env-refactor, ook niet structureel verbeterd heeft (zie §8).
+
+| Metric | Na A3 (`main`) | Beoordeling |
+|---|---|---|
+| Quality Gate | ✅ Passed (Sonar way) | — |
+| Security Rating / open issues | A / 0 | verbeterd (bevinding weg) |
+| Reliability Rating / open issues | C / 5 | ongewijzigd (zie §8) |
+| Maintainability Rating / open issues | A / 116 | ongewijzigd (zie §8) |
+| Duplications | 0,0% (op 5,1k regels) | al schoon vóór A3 |
+| Coverage | – (niet gemeten in SonarCloud) | zie §4.4 |
+| Lines of Code | 3,8k | — |
+
+### 4.4 Coverage-lacune in SonarCloud
+
+SonarCloud toont **geen** coverage (`–`): de JaCoCo-rapporten worden in de Sonar-workflow
+niet gegenereerd vóór de scan, dus SonarCloud krijgt geen coveragedata. De coveragecijfers
+in §3.2 komen daarom uit de **lokale `mvn verify` + JaCoCo**-run (stap 3–4 van de
+reproduceercommando's); dat is voor dit rapport de enige coveragebron. Wil je coverage ook
+in SonarCloud zien, laat de Sonar-workflow dan eerst `test jacoco:report` draaien zodat
+`jacoco.xml` bestaat vóór de scan (de paden staan al in de parent-`pom.xml` via
+`sonar.coverage.jacoco.xmlReportPaths`).
 
 ## 5. Narratief: waarom dit aan A3 toe te schrijven is
 
@@ -164,41 +194,39 @@ legacy-module omlaag brengen — dat was ook niet het doel van deze refactor.
 > 100%). Hiermee is aangetoond dat de A3-refactor de bestaande functionaliteit niet
 > heeft gebroken: een volledig groene run is het regressiebewijs.
 
-## 7. Welke SonarCloud-cijfers en screenshots te verzamelen
+## 7. Welke SonarCloud-screenshots verzamelen
 
-Sla alle afbeeldingen op in [`bewijs/validatie/`](bewijs/validatie/) (zie de checklist in
-[`bewijs/validatie/README.md`](bewijs/validatie/README.md)). Maak telkens een **vóór-A3**-
-en een **na-A3**-opname zodat het verschil zichtbaar is.
+Sla alle afbeeldingen op in [`bewijs/validatie/`](bewijs/validatie/) (checklist in
+[`bewijs/validatie/README.md`](bewijs/validatie/README.md)). De cijfers in sectie 4 zijn
+al ingevuld op basis van de oogst; deze screenshots zijn het visuele bewijs daarbij.
 
-Handige URL's:
-
-- Overview: `https://sonarcloud.io/project/overview?id=Damianen_openmrs-attatchments`
-- Security Hotspots: `https://sonarcloud.io/project/security_hotspots?id=Damianen_openmrs-attatchments`
-- Issues: `https://sonarcloud.io/project/issues?id=Damianen_openmrs-attatchments`
-- Activity (historie): `https://sonarcloud.io/project/activity?id=Damianen_openmrs-attatchments`
-
-| # | Screenshot | Wat moet erop staan | Bestandsnaam |
+| # | Wat te screenshotten | URL | Bestandsnaam |
 |---|---|---|---|
-| 1 | **Hotspot vóór A3** | Security Hotspots-tab op een commit/branch vóór A3: de hardcoded-credentials-hotspot op `AttachmentsActivator.java` (regel met `AKIA-…`), status open/To Review. | `sonar-hotspot-before.png` |
-| 2 | **Hotspot na A3** | Security Hotspots-tab op `main` ná A3: de hotspot is weg (0 open) of staat op Fixed; `AttachmentsActivator.java` wordt niet meer gemarkeerd. | `sonar-hotspot-after.png` |
-| 3 | **Overview na A3** | Projecthome met **Quality Gate Passed** en de measure-tegels (Security/Reliability/Maintainability rating, Security Hotspots Reviewed 100%, Coverage, Duplications). | `sonar-overview-after.png` |
-| 4 | **Overview vóór A3** *(optioneel)* | Dezelfde tegels op de pre-A3-analyse, voor een directe vergelijking van de ratings. | `sonar-overview-before.png` |
-| 5 | **Activity/historie** *(optioneel)* | De activiteitengrafiek waarin het aantal Security Hotspots / Vulnerabilities daalt rond de A3-analyse. | `sonar-activity-hotspots.png` |
+| 1 | Ná-staat: Summary `main` (Quality Gate Passed, Security A, 0 issues) | `https://sonarcloud.io/summary/overall?id=Damianen_openmrs-attatchments` | `sonar-na-main-summary.png` |
+| 2 | Ná-staat: Security Hotspots `main` (100% reviewed, 0 "to review") | `https://sonarcloud.io/project/security_hotspots?id=Damianen_openmrs-attatchments` | `sonar-na-hotspots-leeg.png` |
+| 3 | Ná-staat: Issues `main` gefilterd op Security (0 open security issues) | `https://sonarcloud.io/project/issues?issueStatuses=OPEN%2CCONFIRMED&id=Damianen_openmrs-attatchments` | `sonar-na-issues-security-0.png` |
+| 4 | PR #33 Summary (Quality Gate Passed, 0 New Issues, 0 Hotspots) | `https://sonarcloud.io/summary/new_code?id=Damianen_openmrs-attatchments&pullRequest=33` | `sonar-pr33-summary.png` |
+| 5 | *(optioneel/historisch)* Vóór-staat: Activity-datapunt vóór commit `99486699` | `https://sonarcloud.io/project/activity?id=Damianen_openmrs-attatchments&branch=main` | `sonar-voor-activity.png` |
 
-Noteer bij het maken van de screenshots ook de getallen zelf en vul daarmee de tabellen
-in sectie 4 in (dashboard-tegels: Bugs, Vulnerabilities, Security Hotspots, Code Smells,
-Coverage, Duplications en de drie ratings).
+> Screenshot 5 is op dit moment **niet beschikbaar**: de Activity-pagina geeft een fout
+> terug, dus de vóór-staat kan niet als snapshot worden vastgelegd (zie de meetlacune in
+> sectie 4).
 
 ## 8. Eerlijke kanttekeningen — wat (nog) niet verbeterde
 
 We rapporteren dit recht-toe-recht-aan in plaats van te overclaimen:
 
-- **Complexiteit / technische schuld dalen niet.** Een secrets-naar-omgeving-refactor
-  raakt de cyclomatische complexiteit van de module niet noemenswaardig. De winst is
-  security + modifieerbaarheid, niet een lager complexiteitscijfer.
-- **`api`-branch-coverage blijft laag (~30%).** Dit was vóór A3 al zo (28–29%) en is
-  een bestaand verbeterpunt van de legacy-module; A3 lost dit niet op en claimt dat ook
-  niet. Line-coverage blijft wél stabiel.
+- **Cyclomatische complexiteit — ongewijzigd.** De refactor verplaatste alleen waarden
+  naar omgevingsvariabelen; er is geen structuurwijziging die de complexiteit verlaagt.
+- **Maintainability — ongewijzigd.** SonarCloud toont op `main` **116 open code smells**
+  (Rating A); A3 raakte geen maintainability-paden.
+- **Reliability — ongewijzigd.** Rating **C** met **5 open bugs**; A3 loste deze niet op
+  en claimt dat ook niet.
+- **Duplications — al schoon.** 0,0% vóór én na A3; hier is geen verbetering te claimen.
+- **Coverage in SonarCloud — niet gemeten.** SonarCloud krijgt geen coveragedata (zie
+  §4.4); de lokale JaCoCo-cijfers (§3.2) zijn de enige coveragebron.
+- **`api`-branch-coverage blijft laag (~30%).** Bestaand verbeterpunt van de legacy-module,
+  vóór A3 al zo; line-coverage blijft wél stabiel.
 - **De productie-constructor van `StorageConfig` is niet ge-unit-test** (de 2 ontbrekende
   regels: de anonieme `EnvironmentSource` die `System.getenv` aanroept). Dat is bewust:
   de DIP-seam bestaat juist zodat tests een stub injecteren in plaats van de echte
@@ -206,11 +234,18 @@ We rapporteren dit recht-toe-recht-aan in plaats van te overclaimen:
   *logica* — `require()` fail-fast en de getters — is 100% gedekt.
 - **`omod` is ongewijzigd door A3.** De `omod`-cijfers tonen daarom alleen aan dat er
   geen regressie optreedt; ze zijn geen bewijs van een A3-verbetering.
+- **Vóór-staat niet als snapshot bewaard** (Activity-grafiek-fout); de "bevinding weg"-
+  conclusie is afgeleid uit de PR-analyse (0 new issues) + huidige `main` (0 security
+  issues), niet uit een gescreenshotte vóór-meting.
 
 ## 9. Conclusie
 
-De A3-refactor is gevalideerd: de volledige suite draait groen (75 tests, 0 fouten),
-de coverage daalt niet en de nieuwe security-code is gedekt. De aantoonbare verbetering
-zit in het **verdwijnen van de hardcoded-secret-bevinding** in SonarCloud en in een
-**beter modifieerbaar, testbaar ontwerp** (SRP + DIP). De before/after-cijfers voor
-SonarCloud worden ingevuld zodra de screenshots uit sectie 7 zijn gemaakt.
+De A3-refactor is gevalideerd. **Lokaal:** de volledige suite draait groen (75 tests,
+0 fouten) en de coverage daalt niet — het regressiebewijs. **SonarCloud** (`main`, commit
+`2931cf42`): Quality Gate **Passed**, **Security Rating A**, **0 open security issues** en
+**0 hotspots "to review"**; de PR #33-analyse introduceerde **0 nieuwe issues**. Daarmee is
+de hardcoded-secret-bevinding aantoonbaar verdwenen. De winst zit in security + een beter
+modifieerbaar, testbaar ontwerp (SRP + DIP), niet in complexiteit, reliability of
+maintainability — die blijven, zoals verwacht voor een secrets→env-refactor, ongewijzigd
+(zie §8). De enige openstaande meetlacune is de niet-bewaarde vóór-staat in SonarCloud en
+het ontbreken van coverage in SonarCloud (§4); beide zijn hierboven expliciet benoemd.
