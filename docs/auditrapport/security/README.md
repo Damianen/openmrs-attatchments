@@ -20,6 +20,7 @@ Deze map bevat de security-documentatie en het bijbehorende bewijs voor de audit
 | `11-traceability-matrix.md` | Sprint 4 traceability matrix met NEN-7510 controls en bewijsartefacten |
 | `12-security-audit-eindrapport.md` | Sprint 4 security audit eindrapport |
 | `13-cra-mapping.md` | Sprint 4 CRA-mapping op hoofdlijnen |
+| `14-pentest-review-punchlist.md` | Human-review punch-list voor ontbrekend pentest hertestbewijs |
 | `false-positive-beleid.md` | False-positivebeleid en register |
 | `risk-assessment-report.md` | Overkoepelend risk assessment report |
 
@@ -30,3 +31,5 @@ Deze map bevat de security-documentatie en het bijbehorende bewijs voor de audit
 | `bewijs/repository-access/` | GitHub Environments, production rules, branch ruleset, PR-reviewbewijs en MFA |
 | `bewijs/scanning/` | CodeQL, code scanning, PR securitychecks, GitHub security settings en JaCoCo coverage-overzichten |
 | `bewijs/sbom-sca/` | Dependabot, SBOM JSON/artifact, Snyk en SCA-screenshots |
+| `bewijs/pentest/` | Before/after en hertestbewijs voor de belangrijkste pentestcases |
+| `output/` | Geexporteerde auditrapport-PDF's, waaronder de digitaal ondertekende PDF |
