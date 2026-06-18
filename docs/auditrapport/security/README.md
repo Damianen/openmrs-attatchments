@@ -17,6 +17,9 @@ Deze map bevat de security-documentatie en het bijbehorende bewijs voor de audit
 | `08-attack-surface-overview.md` | Attack surface mapping voor Sprint 3 |
 | `09-logging-gap-analyse.md` | Logging gap analyse voor NEN-7510 A.8.15 |
 | `10-coverage-quality-gate.md` | Coverage, JaCoCo en CI artifact voor Sprint 3 |
+| `11-traceability-matrix.md` | Sprint 4 traceability matrix met NEN-7510 controls en bewijsartefacten |
+| `12-security-audit-eindrapport.md` | Sprint 4 security audit eindrapport |
+| `13-cra-mapping.md` | Sprint 4 CRA-mapping op hoofdlijnen |
 | `false-positive-beleid.md` | False-positivebeleid en register |
 | `risk-assessment-report.md` | Overkoepelend risk assessment report |
 

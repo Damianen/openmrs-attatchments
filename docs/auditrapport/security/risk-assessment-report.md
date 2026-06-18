@@ -9,7 +9,7 @@
 | Datum | 16 juni 2026 |
 | Scope | Attachments module, REST endpoints, file storage, logging, CI/CD en dependencies |
 | Methode | CIA/BIV, STRIDE, kans x impact en NEN-7510:2024-2 koppeling |
-| Pentest | Apart document aanwezig: `docs/auditrapport/08-pentest.pdf`; nog aanvullen met hertest/resultaten voordat het als definitief bewijs wordt opgevoerd |
+| Pentest | Apart document aanwezig: `docs/auditrapport/08-pentest.pdf`; bijgewerkt naar 10 pentestcases |
 
 ## 2. Gebruikte bronnen
 
@@ -27,7 +27,9 @@ Dit rapport is gebaseerd op de documenten en bewijzen die al in het project aanw
 | `07-risicomatrix-bow-tie.md` | Risicomatrix en bow-tie voor applicatie- en CI/CD-risico's |
 | `false-positive-beleid.md` | Werkwijze voor false positives |
 | `bewijs/` | Security-bewijs voor repository access, scanning en SBOM/SCA |
-| `docs/auditrapport/08-pentest.pdf` | Apart pentestdocument; nog aanvullen met hertest/resultaten |
+| `docs/auditrapport/08-pentest.pdf` | Apart pentestdocument met 10 uitgewerkte pentestcases |
+| `11-traceability-matrix.md` | Sprint 4 traceability matrix voor NEN-7510 controls en bewijs |
+| `12-security-audit-eindrapport.md` | Sprint 4 security audit eindrapport |
 | `docs/architecture/` | C4-diagrammen voor systeem-, container- en componentniveau |
 
 ## 3. Managementsamenvatting
@@ -36,7 +38,7 @@ De OpenMRS Attachments Module verwerkt medische bijlagen en bijbehorende patient
 
 De belangrijkste risico's zitten in file access, uploadvalidatie, download-autorisatie, logging en dependencybeheer. Een eerder CodeQL-risico rond een raw `/download?path=` downloadpad is in de huidige broncode niet meer teruggevonden en is gekoppeld aan commit `e9e4aa0 fix CodeQL security alerts`. De huidige validatie gebruikt alleen UUID-gebaseerde attachment bytes en expliciete privilegechecks.
 
-De repository heeft al meerdere securitymaatregelen ingericht, zoals CodeQL/code scanning, Dependabot, SBOM-generatie, GitHub Environments, branch protection/rulesets, secret scanning en MFA-bewijs. Tegelijk blijven er nog open acties over, vooral rond pentest, validatie, false-positive registratie, dependencytriage en securitytests als quality gate.
+De repository heeft al meerdere securitymaatregelen ingericht, zoals CodeQL/code scanning, Dependabot, SBOM-generatie, GitHub Environments, branch protection/rulesets, secret scanning en MFA-bewijs. Het pentestdocument is bijgewerkt naar 10 pentestcases. Tegelijk blijven er nog open acties over, vooral rond hertestbewijs, false-positive registratie, dependencytriage, productie-runtimebevestiging en securitytests als verplichte quality gate.
 
 ## 4. Scope
 
@@ -56,7 +58,7 @@ Out of scope:
 - volledige OpenMRS Core implementatie;
 - productie-infrastructuur buiten de repository;
 - echte productiepatientdata;
-- definitieve pentestresultaten, omdat het pentestdocument nog hertest/resultaten moet bevatten voordat het als afgerond bewijs geldt.
+- productie-infrastructuur en runtime-informatie die niet aantoonbaar in deze repository staat.
 
 ## 5. Assets en crown jewels
 
@@ -207,9 +209,9 @@ Deze raming is een eerste inschatting in uren. Voor een concreet budget is een i
 | SB-08 securitytests opnemen in CI | Developer + reviewer | 6-10 uur | EUR 360-600 |
 | SB-09 metadata-/patientbinding tests | Developer + reviewer | 4-6 uur | EUR 240-360 |
 | SB-10 deployment secrets via environments | Developer + reviewer | 2-4 uur | EUR 120-240 |
-| Pentest afronden en verwerken | Tester + reviewer | 6-10 uur | EUR 360-600 |
+| Pentest hertestbewijs verwerken | Tester + reviewer | 3-6 uur | EUR 180-360 |
 
-Totale eerste inschatting: **49-77 uur**, oftewel **EUR 2.940-4.620** bij EUR 60 per uur. Dit is exclusief extra tijd voor onverwachte dependency-upgradeproblemen.
+Totale eerste inschatting: **46-73 uur**, oftewel **EUR 2.760-4.380** bij EUR 60 per uur. Dit is exclusief extra tijd voor onverwachte dependency-upgradeproblemen.
 
 ## 15. Security tests als quality gate
 
@@ -231,19 +233,20 @@ De huidige situatie bewijst dat securitychecks op PR-niveau draaien en groen kun
 
 ## 16. Moet nog gedaan worden
 
-De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inhoudelijk als bewijs opgevoerd:
+De volgende onderdelen zijn nog niet volledig afgerond of vereisen externe rechten/informatie. Ze worden daarom als open punt vastgelegd:
 
 | Onderdeel | Actie |
 |---|---|
-| Pentest | `08-pentest.pdf` aanvullen met reproduceerbare teststappen, resultaat per test en hertest na mitigatie |
-| Pentest-bewijs | Screenshots, request/response of command output per kwetsbaarheid toevoegen zodra de hertest klaar is |
+| Pentest | `08-pentest.pdf` is bijgewerkt naar 10 pentestcases |
+| Pentest-bewijs | Hertestbewijs, screenshots, request/response of command output per kwetsbaarheid toevoegen waar dit nog ontbreekt |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
 | Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts blijven open totdat productie-runtime, Tomcatversie en endpoint-exposure door owner zijn bevestigd |
 | Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding, base64 parsing en veilige logging zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en de baseline is beoordeeld; Maven Tests moet nog als required check worden geselecteerd |
 | CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
+| Sprint 4 auditrapportage | Traceability matrix en security audit eindrapport zijn toegevoegd in `11-traceability-matrix.md` en `12-security-audit-eindrapport.md` |
 
 ## 17. Conclusie
 
 De risk assessment laat zien dat de grootste risico's draaien om vertrouwelijkheid van patientattachments en patientmetadata. De basisdocumenten zijn aanwezig: assets, risicocriteria, threat model, pipeline-compliance, testdatabeleid en security backlog.
 
-De huidige beveiligingsinrichting bevat al belangrijke maatregelen zoals CodeQL, Dependabot, SBOM, secret scanning, MFA, environments en branch protection. De belangrijkste vervolgstap is het afronden van de open backlogpunten en pas daarna het toevoegen van pentestresultaten aan de bewijsvoering.
+De huidige beveiligingsinrichting bevat al belangrijke maatregelen zoals CodeQL, Dependabot, SBOM, secret scanning, MFA, environments en branch protection. Sprint 4 voegt hier een traceability matrix en security audit eindrapport aan toe. De belangrijkste vervolgstap is het afronden van de open owner- en runtimeafhankelijke punten, zoals Maven Tests als required check, Tika-upgradepad en productie-runtimebevestiging.
