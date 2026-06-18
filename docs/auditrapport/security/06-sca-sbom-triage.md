@@ -20,7 +20,8 @@ Dit document legt vast hoe dependency- en SBOM-findings worden opgevolgd. De too
 | `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` | Bewijs dat de Snyk workflow succesvol draait en 1 artifact heeft |
 | `bewijs/sbom-sca/snyk-artifact-upload-success.png` | Bewijs dat `snyk-sca.json` en `snyk-code.json` succesvol als artifact worden geupload |
 | `bewijs/sbom-sca/sbom-workflow-run-artifact.png` | Bewijs dat de SBOM workflow succesvol draait en 1 artifact heeft |
-| `bewijs/sbom-sca/sbom-artifact-upload-log.png` | Bewijs dat `sbom.zip` succesvol is geupload |
+| `bewijs/sbom-sca/sbom-artifact-upload-log.png` | Bewijs dat het SBOM-artifact succesvol is geupload |
+| `bewijs/sbom-sca/sbom.cdx.json` | Gedownloade CycloneDX SBOM uit GitHub Actions |
 | `bewijs/sbom-sca/dependabot-tika-critical-alert-full.png` | Detailbewijs van de Apache Tika critical Dependabot alert |
 | `bewijs/sbom-sca/dependabot-tika-critical-alert-details.png` | Extra detailbewijs van de Apache Tika alert met CVSS/CVE/GHSA |
 | `docker/docker-compose.prod.yml` | Productieconfiguratie voor module web admin en read-only module mount |
@@ -62,7 +63,21 @@ De open dependencyrisico's zitten vooral in twee gebieden:
 
 Voor SCA-001 is daarnaast een tijdelijke technische beperking toegevoegd in de uploadflow. Als `allowedFileExtensions` leeg is, gebruikt de module nu een veilige default allowlist (`pdf,png,jpg,jpeg`). Extensiecontrole en Tika-MIME-controle worden altijd uitgevoerd. Regressietests bewijzen dat een lege allowlist niet meer alles toestaat, dat `.exe` wordt geweigerd en dat MIME mismatch wordt geblokkeerd.
 
-De SBOM-workflow is opnieuw handmatig uitgevoerd in `Generate SBOM #15` en heeft succesvol een artifact geupload. Daarmee is het SBOM-bewijs aanwezig.
+De SBOM-workflow is opnieuw handmatig uitgevoerd in `Generate SBOM #15` en heeft succesvol een artifact geupload. Het artifact is gedownload en de uitgepakte CycloneDX SBOM is in de repository bewaard als `bewijs/sbom-sca/sbom.cdx.json`.
+
+De SBOM bevat:
+
+| Eigenschap | Waarde |
+|---|---|
+| Formaat | CycloneDX |
+| Specificatie | 1.4 |
+| Generator | CycloneDX Maven plugin 2.7.10 |
+| Timestamp | 2026-06-17T16:21:21Z |
+| Root component | `org.openmrs.module:attachments:3.5.0` |
+| Aantal componenten | 130 |
+| SHA256 `sbom.cdx.json` | `DDBF43A5545A74309E1436BD974F5FC0985063F8F96EC9823040F47887DD4CE9` |
+
+De belangrijkste dependency-findings uit de triage zijn ook in de SBOM terug te vinden, waaronder `org.apache.tika:tika-core:2.9.2` en `org.openmrs.web:openmrs-web:2.2.0`.
 
 De Snyk-workflow faalde eerder bij de artifact upload, omdat `snyk-sca.json` en `snyk-code.json` niet werden gevonden. De workflow is daarna aangepast zodat de Snyk-stappen altijd een JSON-bestand achterlaten. Als Snyk succesvol scanresultaten oplevert, worden die bestanden geupload. Als Snyk faalt voordat JSON wordt geschreven, wordt een kleine error-JSON aangemaakt zodat de artifact upload alsnog bewijsbaar is.
 
@@ -89,7 +104,7 @@ Samengevat: de compile-time Dependabot alert blijft zichtbaar omdat de module te
 | Dependabot alerts | `bewijs/sbom-sca/dependabot-alerts-overview.png`, Tika-detail screenshots en OpenMRS alert-overviews | Aanwezig | Detailpagina's blijven beschikbaar in GitHub Dependabot |
 | Dependabot update PR's | `bewijs/repository-access/dependabot-prs-review-required.png` toont dependency-update PR's met `Review required` | Aanwezig | Updates beoordelen via PR-review voordat ze worden gemerged |
 | PR securitychecks | `bewijs/scanning/pr-security-checks-passed.png` toont een gemergde PR met groene CodeQL-, Snyk- en code scanning-checks | Aanwezig | Failed checks blokkeren merge volgens de ingestelde PR/ruleset-werkwijze |
-| SBOM | `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png` | Aanwezig | Artifact downloaden/bewaren bij auditbewijs indien nodig |
+| SBOM | `bewijs/sbom-sca/sbom-workflow-run-artifact.png`, `bewijs/sbom-sca/sbom-artifact-upload-log.png` en `bewijs/sbom-sca/sbom.cdx.json` | Aanwezig | SBOM opnieuw genereren na dependencywijzigingen |
 | Snyk SCA/SAST workflow | `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` | Aanwezig | Periodiek blijven draaien in CI |
 | Snyk JSON artifacts | `bewijs/sbom-sca/snyk-artifact-upload-success.png` toont dat `snyk-sca.json` en `snyk-code.json` worden geupload | Aanwezig | Artifact downloaden/bewaren indien nodig |
 | Apache Tika Dependabot alert | `bewijs/sbom-sca/dependabot-tika-critical-alert-full.png` en `bewijs/sbom-sca/dependabot-tika-critical-alert-details.png` tonen package, vulnerable range, patched version, CVSS 10.0, CVE en GHSA | Aanwezig | Java/OpenMRS-upgradepad of Java 8-compatibele gepatchte Tika-versie bepalen |
@@ -100,7 +115,7 @@ Samengevat: de compile-time Dependabot alert blijft zichtbaar omdat de module te
 | Actie | Eigenaar | Status |
 |---|---|---|
 | Snyk JSON-artifacts downloaden en bewaren als bewijs | Team | Aanwezig in GitHub Actions; downloaden/bewaren indien nodig |
-| CycloneDX SBOM-artifact bewaren bij auditbewijs | Team | Aanwezig in GitHub Actions; downloaden/bewaren indien nodig |
+| CycloneDX SBOM-artifact bewaren bij auditbewijs | Team | Uitgevoerd; `sbom.cdx.json` staat in de bewijsmap |
 | Tika upgrade-impact testen op Java 8 en OpenMRS modulecompatibiliteit | Developer | Uitgevoerd; directe upgrade naar 3.2.2 faalt op Java 8 |
 | Upload allowlist/MIME-validatie toevoegen als compensating control | Developer | Uitgevoerd en getest |
 | OpenMRS Core upgradepad onderzoeken | Team | Open; productie-runtime moet door owner/deploymentbeheerder worden bevestigd |

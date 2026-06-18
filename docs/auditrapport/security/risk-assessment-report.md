@@ -9,7 +9,7 @@
 | Datum | 16 juni 2026 |
 | Scope | Attachments module, REST endpoints, file storage, logging, CI/CD en dependencies |
 | Methode | CIA/BIV, STRIDE, kans x impact en NEN-7510:2024-2 koppeling |
-| Pentest | Nog niet opgenomen; pentest is nog niet afgerond |
+| Pentest | Apart document aanwezig: `docs/auditrapport/08-pentest.pdf`; nog aanvullen met hertest/resultaten voordat het als definitief bewijs wordt opgevoerd |
 
 ## 2. Gebruikte bronnen
 
@@ -27,6 +27,7 @@ Dit rapport is gebaseerd op de documenten en bewijzen die al in het project aanw
 | `07-risicomatrix-bow-tie.md` | Risicomatrix en bow-tie voor applicatie- en CI/CD-risico's |
 | `false-positive-beleid.md` | Werkwijze voor false positives |
 | `bewijs/` | Security-bewijs voor repository access, scanning en SBOM/SCA |
+| `docs/auditrapport/08-pentest.pdf` | Apart pentestdocument; nog aanvullen met hertest/resultaten |
 | `docs/architecture/` | C4-diagrammen voor systeem-, container- en componentniveau |
 
 ## 3. Managementsamenvatting
@@ -55,7 +56,7 @@ Out of scope:
 - volledige OpenMRS Core implementatie;
 - productie-infrastructuur buiten de repository;
 - echte productiepatientdata;
-- pentestresultaten, omdat de pentest nog niet is afgerond.
+- definitieve pentestresultaten, omdat het pentestdocument nog hertest/resultaten moet bevatten voordat het als afgerond bewijs geldt.
 
 ## 5. Assets en crown jewels
 
@@ -188,7 +189,7 @@ De SCA/SBOM-opvolging staat uitgewerkt in `06-sca-sbom-triage.md`. De huidige be
 | SCA-002 | OpenMRS Module Upload Zip Slip, CVE-2026-40076 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; repository-prodconfig zet `MODULE_WEB_ADMIN=false` en modules read-only; echte productie-runtime en endpoint-exposure nog door owner bevestigen |
 | SCA-003 | OpenMRS ModuleResourcesServlet path traversal, CVE-2026-40075 | `org.openmrs.web:openmrs-web` 2.2.0 | Besluit: open houden; Tomcatversie en echte productie-exposure staan niet aantoonbaar in deze repository en moeten door owner worden bevestigd |
 
-SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. Snyk-bewijs is aanwezig via `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` en `bewijs/sbom-sca/snyk-artifact-upload-success.png`, waarin te zien is dat de workflow succesvol draait en dat `snyk-sca.json` en `snyk-code.json` als artifact worden geupload.
+SBOM-bewijs is aanwezig via `bewijs/sbom-sca/sbom-workflow-run-artifact.png` en `bewijs/sbom-sca/sbom-artifact-upload-log.png`, waarin te zien is dat het artifact succesvol is geupload. De uitgepakte CycloneDX JSON staat in `bewijs/sbom-sca/sbom.cdx.json` en bevat 130 componenten voor `org.openmrs.module:attachments:3.5.0`. Snyk-bewijs is aanwezig via `bewijs/sbom-sca/snyk-workflow-run-artifact-success.png` en `bewijs/sbom-sca/snyk-artifact-upload-success.png`, waarin te zien is dat de workflow succesvol draait en dat `snyk-sca.json` en `snyk-code.json` als artifact worden geupload.
 
 ## 14. Kostenraming
 
@@ -221,7 +222,7 @@ Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow 
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie, patientbinding en base64 parsing | Aanwezig voor path traversal, uploadvalidatie/MIME, download-autorisatie, patient/visit/encounter mismatch en base64 parsing |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
-| SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15` |
+| SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15`; `sbom.cdx.json` staat in de bewijsmap |
 | Required checks | Branch protection/ruleset verplicht de security/testchecks | Aanwezig voor bestaande PR-checks; nieuwe Maven testjob moet na eerste run nog als required check worden geselecteerd |
 | Review policy | Pull requests naar `main` hebben minimaal 1 review nodig | Aanwezig; `bewijs/repository-access/dependabot-prs-review-required.png` toont dependency PR's met `Review required` |
 | Fail policy | Foutieve checks blokkeren merge; high/critical findings vragen expliciete triage | Aanwezig voor PR-checks; inhoudelijke triage staat in `06-sca-sbom-triage.md` |
@@ -234,8 +235,8 @@ De volgende onderdelen zijn nog niet volledig afgerond en worden daarom niet inh
 
 | Onderdeel | Actie |
 |---|---|
-| Pentest | Pentest afronden en daarna pas resultaten verwerken in een apart pentestdocument of als bijlage |
-| Pentest-bewijs | Screenshots, stappen en resultaten pas toevoegen zodra de pentest klaar is |
+| Pentest | `08-pentest.pdf` aanvullen met reproduceerbare teststappen, resultaat per test en hertest na mitigatie |
+| Pentest-bewijs | Screenshots, request/response of command output per kwetsbaarheid toevoegen zodra de hertest klaar is |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
 | Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts blijven open totdat productie-runtime, Tomcatversie en endpoint-exposure door owner zijn bevestigd |
 | Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding, base64 parsing en veilige logging zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en de baseline is beoordeeld; Maven Tests moet nog als required check worden geselecteerd |
