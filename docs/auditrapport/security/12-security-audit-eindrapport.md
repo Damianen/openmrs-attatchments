@@ -7,6 +7,7 @@ Dit eindrapport vat de security- en compliancebevindingen samen voor de OpenMRS 
 De audit laat zien dat de grootste risico's zitten in:
 
 - file access en path traversal;
+- hardcoded secrets in broncode;
 - uploadvalidatie en MIME-controle;
 - download- en search-autorisatie;
 - logging van patientgegevens;
@@ -16,6 +17,7 @@ Tijdens het verbeteronderzoek zijn meerdere maatregelen aantoonbaar ingericht of
 
 - CodeQL, Snyk, Dependabot en SBOM-generatie;
 - Maven Tests workflow met JaCoCo coverage artifacts;
+- verwijdering van hardcoded AWS-achtige credentials uit de broncode;
 - veilige upload allowlist en MIME-validatie;
 - path traversal mitigaties en regressietests;
 - veilige logging zonder onnodige patient-PII;
@@ -88,12 +90,24 @@ Belangrijke brondocumenten:
 - `09-logging-gap-analyse.md`
 - `10-coverage-quality-gate.md`
 - `11-traceability-matrix.md`
+- `14-pentest-review-punchlist.md`
 - `risk-assessment-report.md`
 - `docs/auditrapport/08-pentest.pdf`
 
 ## 4. Risico-analyse en bevindingen
 
 De risk assessment gebruikt kans x impact en koppelt bevindingen aan vertrouwelijkheid, integriteit en beschikbaarheid. Omdat de module medische attachments verwerkt, is de risicobereidheid laag voor onbevoegde toegang tot patientbestanden of patientmetadata.
+
+### Aanvullende finding - Hardcoded credentials in broncode
+
+| Onderdeel | Invulling |
+|---|---|
+| Risico | AWS-achtige access keys stonden hardcoded in `AttachmentsActivator.java`. Ook als het voorbeeldwaarden zijn, normaliseert dit onveilig secretgebruik en kan dit bij echte waarden leiden tot cloud- of storage-toegang. |
+| Impact | Hoog voor vertrouwelijkheid en integriteit als echte secrets in broncode terechtkomen. |
+| OWASP | A02 Cryptographic Failures, A05 Security Misconfiguration |
+| NEN-7510 | A.8.5, A.8.25, A.8.28 |
+| Status | Gemitigeerd; hardcoded credentials verwijderd en zoekactie op key-patronen geeft geen matches. |
+| Bewijs | `14-pentest-review-punchlist.md`; `bewijs/pentest/2-1-secrets-before-hardcoded.png`; `bewijs/pentest/2-1-secrets-after-code-removed.png`; `bewijs/pentest/README.md`; `api/src/main/java/org/openmrs/module/attachments/AttachmentsActivator.java` |
 
 ### Finding 1 - Path traversal / arbitrary file read
 
@@ -104,7 +118,7 @@ De risk assessment gebruikt kans x impact en koppelt bevindingen aan vertrouweli
 | OWASP | A01 Broken Access Control |
 | NEN-7510 | A.8.3, A.8.28, A.8.29 |
 | Status | Gemitigeerd en getest voor de onderzochte codepaden. |
-| Bewijs | `04-threat-model.md`; `05-security-backlog.md`; `risk-assessment-report.md`; `docs/auditrapport/08-pentest.pdf`; `api/src/main/java/org/openmrs/module/attachments/obs/DefaultAttachmentHandler.java` |
+| Bewijs | `04-threat-model.md`; `05-security-backlog.md`; `risk-assessment-report.md`; `docs/auditrapport/08-pentest.pdf`; `bewijs/pentest/2-4-handler-path-traversal-after-code.png`; `bewijs/pentest/2-4-handler-path-traversal-retest-rejected.png`; `api/src/main/java/org/openmrs/module/attachments/obs/DefaultAttachmentHandler.java` |
 
 ### Finding 2 - Upload allowlist bypass en MIME mismatch
 
@@ -115,7 +129,7 @@ De risk assessment gebruikt kans x impact en koppelt bevindingen aan vertrouweli
 | OWASP | A05 Security Misconfiguration, A08 Software and Data Integrity Failures |
 | NEN-7510 | A.8.28, A.8.29 |
 | Status | Gemitigeerd met veilige default allowlist, extensiecontrole, MIME-controle en regressietests. |
-| Bewijs | `05-security-backlog.md`; `06-sca-sbom-triage.md`; `risk-assessment-report.md`; `docs/auditrapport/08-pentest.pdf`; `omod/src/main/java/org/openmrs/module/attachments/rest/AttachmentResource.java`; `omod/src/test/java/org/openmrs/module/attachments/rest/AttachmentResourceTest.java` |
+| Bewijs | `05-security-backlog.md`; `06-sca-sbom-triage.md`; `risk-assessment-report.md`; `docs/auditrapport/08-pentest.pdf`; `bewijs/pentest/2-5-upload-allowlist-after-code.png`; `bewijs/pentest/2-5-upload-allowlist-mime-retest-rejected.png`; `omod/src/main/java/org/openmrs/module/attachments/rest/AttachmentResource.java`; `omod/src/test/java/org/openmrs/module/attachments/rest/AttachmentResourceTest.java` |
 
 ### Finding 3 - Download-autorisatie / IDOR
 
@@ -126,7 +140,7 @@ De risk assessment gebruikt kans x impact en koppelt bevindingen aan vertrouweli
 | OWASP | A01 Broken Access Control |
 | NEN-7510 | A.8.3, A.8.5, A.8.29 |
 | Status | Gedeeltelijk gemitigeerd met expliciete privilegecheck en regressietests; patient access blijft afhankelijk van OpenMRS autorisatiemodel. |
-| Bewijs | `08-attack-surface-overview.md`; `risk-assessment-report.md`; `docs/auditrapport/08-pentest.pdf`; `omod/src/main/java/org/openmrs/module/attachments/rest/AttachmentBytesResource.java`; `omod/src/test/java/org/openmrs/module/attachments/rest/AttachmentBytesResourceTest.java` |
+| Bewijs | `08-attack-surface-overview.md`; `risk-assessment-report.md`; `docs/auditrapport/08-pentest.pdf`; `bewijs/pentest/2-7-download-idor-after-privilege-check.png`; `bewijs/pentest/2-7-download-idor-retest-forbidden-tests.png`; `bewijs/pentest/2-7-download-idor-retest-green-output.png`; `omod/src/main/java/org/openmrs/module/attachments/rest/AttachmentBytesResource.java`; `omod/src/test/java/org/openmrs/module/attachments/rest/AttachmentBytesResourceTest.java` |
 
 ### Finding 4 - PII en log injection in logging
 
