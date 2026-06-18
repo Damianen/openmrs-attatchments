@@ -106,7 +106,7 @@ Voor patientdata geldt dat rode risico's niet onbehandeld mogen blijven. Oranje 
 | T06 | Malformed base64 upload kan onduidelijk foutgedrag geven | Beschikbaarheid, integriteit | 3 | 3 | 9 | Gemitigeerd en getest |
 | T07 | Legacy dependencies kunnen bekende CVE's bevatten | Vertrouwelijkheid, integriteit, beschikbaarheid | 3 | 4 | 12 | Gedeeltelijk afgerond; SCA-besluiten staan, runtimecontrole blijft open |
 | T08 | Deployment secrets en deployment workflow zijn nog niet volledig bewezen | Integriteit | 2 | 4 | 8 | Moet nog gedaan worden |
-| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Maven Tests workflow en JaCoCo coverage artifacts zijn ingericht; required-check selectie en baselinebeoordeling volgen na eerste run |
+| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Maven Tests workflow en JaCoCo coverage artifacts zijn ingericht en bewezen; required-check selectie en eventuele harde coverage threshold blijven open |
 | T10 | Attachmentmetadata kan verkeerd gekoppeld worden aan patient/context | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Gemitigeerd en getest voor upload patient/visit/encounter mismatch |
 
 ## 8. Hoogste risico's
@@ -212,12 +212,12 @@ Totale eerste inschatting: **49-77 uur**, oftewel **EUR 2.940-4.620** bij EUR 60
 
 ## 15. Security tests als quality gate
 
-Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow genereert ook JaCoCo coverage rapporten als artifacts. Na de eerste GitHub Actions run moet de Maven Tests check nog als verplichte required check in de ruleset worden geselecteerd en moet de coveragebaseline worden beoordeeld.
+Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow genereert ook JaCoCo coverage rapporten als artifacts. De eerste GitHub Actions run is groen en toont beide coverage artifacts. De Maven Tests check moet nog als verplichte required check in de ruleset worden geselecteerd en de coveragebaseline moet nog worden beoordeeld voor een eventuele harde threshold.
 
 | Stap | Gewenste inrichting | Status |
 |---|---|---|
-| Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht in `.github/workflows/maven-tests.yml`; eerste GitHub Actions run en required-check selectie volgen na push |
-| Coverage rapport | JaCoCo rapporten worden gemaakt voor API en OMOD security tests | Ingericht; eerste CI-artifact moet nog beoordeeld worden |
+| Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht en groen bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; required-check selectie volgt nog |
+| Coverage rapport | JaCoCo rapporten worden gemaakt voor API en OMOD security tests | Ingericht en artifacts bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; inhoudelijke baselinebeoordeling volgt nog |
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie, patientbinding en base64 parsing | Aanwezig voor path traversal, uploadvalidatie/MIME, download-autorisatie, patient/visit/encounter mismatch en base64 parsing |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |

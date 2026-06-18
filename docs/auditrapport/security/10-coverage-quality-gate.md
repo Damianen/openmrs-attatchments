@@ -71,26 +71,28 @@ We kiezen eerst voor meten en rapporteren. Een harde fail threshold wordt pas to
 
 ## 7. Bewijs
 
-Na de eerste succesvolle GitHub Actions run moeten screenshots worden toegevoegd van:
+De eerste succesvolle GitHub Actions run is vastgelegd in:
+
+- `bewijs/scanning/maven-tests-coverage-artifacts-success.png`
+
+Deze screenshot toont:
 
 - groene `Maven Tests` workflow;
 - artifact `api-coverage-report`;
 - artifact `omod-security-coverage-report`;
-- eventueel het JaCoCo HTML-overzicht met line/branch coverage.
+- beide jobs `api-tests` en `omod-security-tests` succesvol afgerond.
 
-Aanbevolen map:
-
-- `docs/auditrapport/security/bewijs/scanning/`
+Eventueel kan later nog een extra screenshot van het JaCoCo HTML-overzicht worden toegevoegd, maar het belangrijkste CI-artifactbewijs is aanwezig.
 
 ## 8. Open acties
 
 | Actie | Status |
 |---|---|
-| Eerste CI-run met coverage artifacts uitvoeren | Moet nog gedaan worden |
-| Coveragepercentages uit artifact vergelijken met lokale baseline | Moet nog gedaan worden |
+| Eerste CI-run met coverage artifacts uitvoeren | Uitgevoerd; bewijs in `bewijs/scanning/maven-tests-coverage-artifacts-success.png` |
+| Coveragepercentages uit artifact vergelijken met lokale baseline | Gedeeltelijk; artifacts zijn aanwezig, lokale baseline staat in dit document |
 | Beslissen of harde minimumdrempel nodig is | Moet nog gedaan worden na baseline |
-| Screenshots toevoegen aan bewijsmap | Moet nog gedaan worden |
+| Screenshots toevoegen aan bewijsmap | Uitgevoerd voor workflow en artifacts |
 
 ## 9. Conclusie
 
-JaCoCo maakt de testcoverage zichtbaar en de GitHub Actions workflow bewaart de rapporten als artifact. Daarmee is Sprint 3 beter aantoonbaar: testresultaten zijn niet alleen groen, maar ook meetbaar. De volgende stap is de eerste CI-run beoordelen en op basis daarvan bepalen of een harde coverage threshold nodig is.
+JaCoCo maakt de testcoverage zichtbaar en de GitHub Actions workflow bewaart de rapporten als artifact. Daarmee is Sprint 3 beter aantoonbaar: testresultaten zijn niet alleen groen, maar ook meetbaar. De volgende stap is bepalen of een harde coverage threshold nodig is nadat de coverage artifacts inhoudelijk zijn beoordeeld.
