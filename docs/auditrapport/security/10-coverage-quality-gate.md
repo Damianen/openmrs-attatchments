@@ -74,9 +74,16 @@ De GitHub Actions artifacts zijn geopend via het JaCoCo HTML-overzicht. Dit geef
 | OMOD security regressietests | Ingericht | Draait gericht op attachment security tests. |
 | Coverage rapport | Ingericht | JaCoCo rapport wordt gegenereerd. |
 | Coverage artifact | Ingericht | GitHub Actions uploadt rapporten als artifact. |
-| Hard coverage fail threshold | Nog niet hard afgedwongen | Eerst meten en beoordelen; daarna eventueel minimum afdwingen. |
+| Hard coverage fail threshold | Bewust niet hard afgedwongen in Sprint 3 | Coverage wordt beoordeeld via de 60% reviewnorm, JaCoCo artifacts en PR-review. |
 
-We kiezen eerst voor meten en rapporteren. Een harde fail threshold wordt pas toegevoegd nadat de eerste CI-run laat zien wat de realistische baseline is. Dit voorkomt dat legacy-code zonder analyse de pipeline blokkeert, terwijl de securityrelevante testdekking wel zichtbaar wordt.
+We kiezen in Sprint 3 voor meten, rapporteren en reviewen in plaats van een harde technische fail threshold. De reden is dat dit een legacy/OpenMRS-module is met frameworkafhankelijkheden. Een harde grens kan zonder langere baseline onnodig PR's blokkeren, terwijl gerichte security regressietests belangrijker zijn dan een enkel totaalpercentage.
+
+Het besluit voor Sprint 3 is daarom:
+
+- 60% line coverage blijft de startnorm voor security-relevante code;
+- API en OMOD security coverage zitten boven deze norm;
+- JaCoCo artifacts blijven onderdeel van het PR-bewijs;
+- een harde Maven/JaCoCo fail threshold wordt pas later toegevoegd als het team dit wil en de baseline stabiel genoeg is.
 
 ## 8. Bewijs
 
@@ -101,9 +108,9 @@ Deze screenshots tonen:
 |---|---|
 | Eerste CI-run met coverage artifacts uitvoeren | Uitgevoerd; bewijs in `bewijs/scanning/maven-tests-coverage-artifacts-success.png` |
 | Coveragepercentages uit artifact vergelijken met lokale baseline | Uitgevoerd; JaCoCo HTML-screenshots staan in de bewijsmap |
-| Beslissen of harde minimumdrempel nodig is | Moet nog gedaan worden na baseline |
+| Beslissen of harde minimumdrempel nodig is | Besloten: niet hard afdwingen in Sprint 3; wel 60% reviewnorm en JaCoCo artifact |
 | Screenshots toevoegen aan bewijsmap | Uitgevoerd voor workflow, artifacts en JaCoCo HTML-overzichten |
 
 ## 10. Conclusie
 
-JaCoCo maakt de testcoverage zichtbaar en de GitHub Actions workflow bewaart de rapporten als artifact. Daarmee is Sprint 3 beter aantoonbaar: testresultaten zijn niet alleen groen, maar ook meetbaar. De artifactrapporten zijn inhoudelijk beoordeeld en zitten boven de gekozen 60% startnorm. De volgende stap is bepalen of een harde coverage threshold nodig is.
+JaCoCo maakt de testcoverage zichtbaar en de GitHub Actions workflow bewaart de rapporten als artifact. Daarmee is Sprint 3 beter aantoonbaar: testresultaten zijn niet alleen groen, maar ook meetbaar. De artifactrapporten zijn inhoudelijk beoordeeld en zitten boven de gekozen 60% startnorm. Voor Sprint 3 is besloten om geen harde technische coverage-threshold af te dwingen, maar coverage te beoordelen via artifactbewijs en PR-review.
