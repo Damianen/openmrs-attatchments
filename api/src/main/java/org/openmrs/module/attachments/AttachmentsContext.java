@@ -168,7 +168,7 @@ public class AttachmentsContext {
 		if (visit != null && isOneEncounterPerVisit()) {
 			List<Encounter> encounters = visitCompatibility.getNonVoidedEncounters(visit);
 			for (Encounter e : encounters) {
-				if (e.getEncounterType().getUuid() == getEncounterType().getUuid()) {
+				if (e.getEncounterType().getUuid().equals(getEncounterType().getUuid())) {
 					encounter = e;
 					saveEncounter = false;
 					break;
