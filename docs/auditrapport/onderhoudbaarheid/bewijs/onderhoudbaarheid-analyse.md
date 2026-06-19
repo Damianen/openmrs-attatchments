@@ -101,16 +101,23 @@ Dit resultaat wordt geëxporteerd als een XML-rapport (`target/site/jacoco/jacoc
 
 ## 4. Initiële Triage en Analyse van Technische Schuld
 
-> Zodra de SonarCloud-dashboards groen uitslaan, wordt hier op basis van de hotspots een kwalitatieve analyse geschreven. Dit vormt de directe input voor de geprioriteerde verbeterlijst in het Verbeteringen-document.
+> Op basis van de nulmeting (§3) en een doorsnede van de broncode is hieronder een kwalitatieve triage gemaakt van de grootste bronnen van technische schuld. Dit vormt de directe input voor de geprioriteerde verbeterlijst in het Verbeteringen-document. De exacte per-regel-uitsplitsing van code smells en de precies als *Highly Complex* gemarkeerde methoden zijn te raadplegen op het SonarCloud-dashboard (project `Damianen_openmrs-attatchments`).
 
 ### Hotspots in Complexiteit
 
-[Beschrijf hier morgen welke klassen of methoden door SonarCloud als "Highly Complex" zijn gemarkeerd, bijvoorbeeld in de bestands-streaming of thumbnail-afhandeling.]
+De cyclomatische complexiteit van het project bedraagt **400** en de cognitieve complexiteit **255**, verdeeld over 3.801 regels code. Dat is een gematigd profiel en verklaart mede waarom de Maintainability Rating op **A** blijft staan: geen enkele methode domineert het geheel. De complexiteit concentreert zich echter in een klein aantal grote klassen:
+
+- **`AttachmentsContext`** (api, 1.093 regels) is veruit de grootste klasse en fungeert als centrale facade/hub; door zijn omvang en vertakte logica is dit de meest waarschijnlijke drager van de hoogste per-methode-complexiteit.
+- **`AttachmentResource`** (omod, 609 regels) is de grootste REST-resource en bundelt validatie, upload- en downloadafhandeling in één klasse.
+- De bestands- en beeldverwerking (streaming, thumbnails) zit in de handler-keten `AbstractAttachmentHandler` → `ImageAttachmentHandler` / `DefaultAttachmentHandler` plus `ComplexObsSaver`; dit is functioneel de meest vertakte code (conditionele logica op content-type).
 
 ### Geconstateerde Code Smells
 
-[Noteer hier de meest voorkomende typen code smells, zoals ongebruikte imports, deprecated API-aanroepen of te diep geneste loops.]
+SonarCloud telt **116 code smells** met een geschatte hersteltijd van **868 minuten (≈ 14 u 28 min)**. Omdat de Maintainability Rating desondanks **A** is, gaat het overwegend om laag-severity smells en niet om blocker- of critical-issues. De smells concentreren zich logischerwijs in de grootste klassen (`AttachmentsContext`, `AttachmentResource`). Een concreet, in de broncode verifieerbaar voorbeeld van *self-admitted technical debt* (Sonar-regel `java:S1135`) staat in `AttachmentsContext.java:383` (`// TODO: Figure out if this is good enough`). De volledige per-regel-verdeling (o.a. ongebruikte imports, deprecated API-aanroepen, te diep geneste logica) is op het dashboard onder *Issues → Code Smell* in te zien.
 
 ### Architectonische Koppeling
 
-[Analyseer of er sprake is van ongewenste tight-coupling tussen de REST-laag en de database-entities.]
+Twee koppelingspatronen verdienen aandacht:
+
+1. **REST-laag ↔ domein/persistentie.** `AttachmentResource` (omod) importeert rechtstreeks OpenMRS-domeinentiteiten (`Obs`, `Patient`, `Encounter`) en roept daarnaast `org.openmrs.api.context.Context` en services (o.a. `EncounterService`) aan. De REST-laag werkt dus deels direct met persistente entiteiten in plaats van uitsluitend via de `AttachmentsContext`-facade — een vorm van tight coupling tussen de presentatie- en datalaag.
+2. **Centrale hub.** `AttachmentsContext` wordt door 10 klassen in beide modules gebruikt. Deze hoge afferente koppeling maakt de klasse een single point of change: een wijziging erin raakt een groot deel van de codebase. Het opsplitsen van deze facade is daarmee de meest impactvolle modifieerbaarheids-verbetering (zie Verbeteringen-document).
