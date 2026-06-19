@@ -54,6 +54,7 @@ Aanbevolen bewijsbestanden:
 | `maven-tests-required-check-ruleset.png` | Ruleset/settings-pagina waarin `api-tests` en `omod-security-tests` required zijn. |
 | `maven-tests-required-check-blocks-merge.png` | PR-mergebox waarin merge geblokkeerd wordt totdat required checks groen zijn. |
 | `maven-tests-required-check-mergeable.png` | Optioneel bewijs dat merge pas mogelijk is nadat de checks groen zijn. |
+| `maven-tests-required-checks-green.png` | PR-checkoverzicht waarin `api-tests` en `omod-security-tests` groen zijn en allebei als `Required` gemarkeerd staan. |
 
 ## Beheercommando voor later
 
