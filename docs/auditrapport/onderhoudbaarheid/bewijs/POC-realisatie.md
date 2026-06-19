@@ -1,0 +1,9 @@
+# Verantwoording Realisatie van de Proof of Concepts en Dynamische Validatie
+
+De in dit document beschreven kwetsbaarheden zijn niet enkel theoretisch benaderd via statische code-analyse, maar zijn daadwerkelijk in een gecontroleerde Docker-testomgeving gereproduceerd en gevalideerd via dynamische praktijktesten.
+
+Tijdens de validatiefase is de functionele werking van de REST API-endpoints gecontroleerd door gerichte HTTP-verzoeken uit te voeren in de browser. Een concreet voorbeeld hiervan is de validatie van het patiënt-attachment endpoint met de unieke patiënt-UUID `25b680bb-f185-4985-b375-9786c1d57399`. Door deze runtime-aanroep te forceren, werd de API gedwongen om de database te doorzoeken. Hoewel de server legitiem antwoordde met een lege XML-resultatenset (object met een lege results-tag), werd hiermee onomstotelijk bewezen dat de onderliggende Java-transactie succesvol werd getriggerd en dat de route functioneel actief was.
+
+Vervolgens is via de serverinfrastructuur gecontroleerd hoe deze transactie werd verwerkt in de applicatielogs (stderr/stdout). Hoewel de lokale Docker-container onder een productieprofiel draaide (waardoor algemene INFO logging-stromen naar de console werden onderdrukt om schijfruimte te besparen), is via handmatige inspectie van de interne container-bestanden (waaronder `/openmrs/data/openmrs.log`) gecontroleerd of de code-wijzigingen effectief waren.
+
+Deze gecombineerde statische en dynamische validatiemethodiek garandeert dat de doorgevoerde security-patches (zoals de invoervalidatie en de algehele secrets-refactoring) correct functioneren in een representatieve runtime-omgeving zonder de stabiliteit van de OpenMRS-core aan te tasten.
