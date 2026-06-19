@@ -60,6 +60,8 @@ Omdat de gate niet-blokkerend is, ziet een gate-overtreding er zo uit:
 
 De gate is dus een reviewsignaal, geen technische poort. Wil je de gate wél hard laten blokkeren, voeg dan `"-Dsonar.qualitygate.wait=true"` toe aan het scancommando in sectie 2; de run wordt dan rood bij een **Failed** gate.
 
+> Live voorbeeld: op `main` staat de gate op **Failed** wegens New Code Reliability Rating (C); de CI-run bleef groen omdat de gate niet-blokkerend is — zie `bewijs/quality-gate/sonar-gate-status.png`.
+
 ## 6. SonarCloud-UI: gate instellen
 
 1. Ga naar `https://sonarcloud.io/organizations/damianen/quality_gates`.

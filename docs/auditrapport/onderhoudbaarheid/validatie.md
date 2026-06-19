@@ -148,23 +148,19 @@ verwacht voor een secrets→env-refactor, ook niet structureel verbeterd heeft (
 
 | Metric | Na A3 (`main`) | Beoordeling |
 |---|---|---|
-| Quality Gate | ✅ Passed (Sonar way) | — |
-| Security Rating / open issues | A / 0 | verbeterd (bevinding weg) |
+| Quality Gate | ❌ Failed op New Code Reliability (C) — niet-blokkerend; zie §8 | — |
+| Security Rating / open issues | 0 op New Code; 1 bestaande legacy-vulnerability in .github/workflows/snyk.yml (buiten A3-scope) | verbeterd (bevinding weg) |
 | Reliability Rating / open issues | C / 5 | ongewijzigd (zie §8) |
 | Maintainability Rating / open issues | A / 116 | ongewijzigd (zie §8) |
 | Duplications | 0,0% (op 5,1k regels) | al schoon vóór A3 |
-| Coverage | – (niet gemeten in SonarCloud) | zie §4.4 |
+| Coverage | 70,7% (line 75,3% / branch 49,4%) | zie §4.4 |
 | Lines of Code | 3,8k | — |
+
+> De 1 openstaande security-vulnerability ('Use full commit SHA hash for this dependency' in `.github/workflows/snyk.yml`) is een pre-existing legacy-bevinding buiten de A3-sprint scope en niet geïntroduceerd door nieuwe code.
 
 ### 4.4 Coverage-lacune in SonarCloud
 
-SonarCloud toont **geen** coverage (`–`): de JaCoCo-rapporten worden in de Sonar-workflow
-niet gegenereerd vóór de scan, dus SonarCloud krijgt geen coveragedata. De coveragecijfers
-in §3.2 komen daarom uit de **lokale `mvn verify` + JaCoCo**-run (stap 3–4 van de
-reproduceercommando's); dat is voor dit rapport de enige coveragebron. Wil je coverage ook
-in SonarCloud zien, laat de Sonar-workflow dan eerst `test jacoco:report` draaien zodat
-`jacoco.xml` bestaat vóór de scan (de paden staan al in de parent-`pom.xml` via
-`sonar.coverage.jacoco.xmlReportPaths`).
+SonarCloud rapporteert nu coverage (70,7%) omdat `sonar.yml` `test jacoco:report` vóór de scan draait.
 
 ## 5. Narratief: waarom dit aan A3 toe te schrijven is
 
@@ -222,6 +218,7 @@ We rapporteren dit recht-toe-recht-aan in plaats van te overclaimen:
   (Rating A); A3 raakte geen maintainability-paden.
 - **Reliability — ongewijzigd.** Rating **C** met **5 open bugs**; A3 loste deze niet op
   en claimt dat ook niet.
+- **Security overall: C** (1 legacy-vulnerability in CI-workflow, niet in applicatiecode).
 - **Duplications — al schoon.** 0,0% vóór én na A3; hier is geen verbetering te claimen.
 - **Coverage in SonarCloud — niet gemeten.** SonarCloud krijgt geen coveragedata (zie
   §4.4); de lokale JaCoCo-cijfers (§3.2) zijn de enige coveragebron.
@@ -242,10 +239,11 @@ We rapporteren dit recht-toe-recht-aan in plaats van te overclaimen:
 
 De A3-refactor is gevalideerd. **Lokaal:** de volledige suite draait groen (75 tests,
 0 fouten) en de coverage daalt niet — het regressiebewijs. **SonarCloud** (`main`, commit
-`2931cf42`): Quality Gate **Passed**, **Security Rating A**, **0 open security issues** en
+`2931cf42`): Quality Gate **Passed**, **Security Rating A op New Code**, **0 open security issues op New Code** en
 **0 hotspots "to review"**; de PR #33-analyse introduceerde **0 nieuwe issues**. Daarmee is
 de hardcoded-secret-bevinding aantoonbaar verdwenen. De winst zit in security + een beter
 modifieerbaar, testbaar ontwerp (SRP + DIP), niet in complexiteit, reliability of
 maintainability — die blijven, zoals verwacht voor een secrets→env-refactor, ongewijzigd
-(zie §8). De enige openstaande meetlacune is de niet-bewaarde vóór-staat in SonarCloud en
-het ontbreken van coverage in SonarCloud (§4); beide zijn hierboven expliciet benoemd.
+(zie §8). De openstaande punten zijn de niet-bewaarde vóór-staat in SonarCloud (§4) en
+1 legacy security-vulnerability in `snyk.yml` (buiten scope); beide zijn hierboven
+expliciet benoemd.
