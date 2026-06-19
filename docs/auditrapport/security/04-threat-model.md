@@ -111,7 +111,7 @@ Risicobereidheid: voor patientdata accepteren we geen onbehandelde P0-risico's. 
 | T06 | Base64 upload | Malformed base64 input kan exceptions of onduidelijk foutgedrag veroorzaken. | Denial of Service, Tampering | Beschikbaarheid, integriteit | 3 | 3 | 9 | `AttachmentResource.java` regels 113-119 en 365-370 parsen base64 met vaste aannames over data URI structuur. | Aparte parser maken met duidelijke validatie en foutmeldingen; negatieve tests toevoegen. |
 | T07 | Dependencies | Verouderde dependencies kunnen bekende CVE's bevatten. | Elevation of Privilege, Tampering, DoS | Integriteit, beschikbaarheid, vertrouwelijkheid | 3 | 4 | 12 | Verdiepend onderzoek noemt o.a. Spring 4.1.4, Jackson 2.9, Log4j 1.2.15, Commons FileUpload 1.3.3 en XStream 1.4.3. | SBOM + SCA blijven draaien; findings triageren op runtime/reachability; upgrades plannen. |
 | T08 | CI/CD secrets en deployment | Secrets en deployment naar echte environments zijn nog niet volledig bewezen. | Spoofing, Tampering | Integriteit | 2 | 4 | 8 | Het pipelineverslag noemt dat environment secrets en deployment workflow nog open staan. | Secrets pas toevoegen via GitHub Environments; prod approvals behouden; geen secrets in repo. |
-| T09 | Build/testbaarheid | Security tests en coverage moeten betrouwbaar in CI draaien. | Tampering, Repudiation | Integriteit, traceerbaarheid | 3 | 3 | 9 | `.github/workflows/maven-tests.yml` draait API-tests, omod security regressietests en JaCoCo coverage rapporten op pull requests. | Maven testjob als required check opnemen; coverage artifacts zijn inhoudelijk beoordeeld. |
+| T09 | Build/testbaarheid | Security tests en coverage moeten betrouwbaar in CI draaien. | Tampering, Repudiation | Integriteit, traceerbaarheid | 3 | 3 | 9 | `.github/workflows/maven-tests.yml` draait API-tests, omod security regressietests en JaCoCo coverage rapporten op pull requests. `api-tests` en `omod-security-tests` zijn required checks voor PR's naar `main`. | Coverage artifacts blijven inhoudelijk beoordelen bij PR-review. |
 | T10 | Database metadata | Verkeerde of gemanipuleerde metadata kan attachment aan verkeerde patient/context koppelen. | Tampering | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Uploadflow valideert patient, visit en encounter samenhang in `AttachmentResource.java`. | Gemitigeerd met checks en regressietests voor patient/visit/encounter mismatch. |
 
 ## 7. STRIDE samenvatting
@@ -177,7 +177,7 @@ Voor een bow-tie analyse is T01 de beste kandidaat, omdat er een duidelijke oorz
 | P2 | PII uit attachment-fetch en concept-search lookup logs verwijderd; veilige auditlogging toegevoegd voor upload, bytes-download en delete/purge. | T05 |
 | P2 | Maak een veilige parser voor base64 uploads. | T06 |
 | P2 | Triager SCA/SBOM findings op runtime en exploitability. | T07 |
-| P2 | Maven test workflow draait API- en omod securitytests op PR's en uploadt JaCoCo coverage artifacts; coveragebaseline is beoordeeld en required-check selectie volgt nog. | T09 |
+| P2 | Maven test workflow draait API- en omod securitytests op PR's, uploadt JaCoCo coverage artifacts en is als required check ingericht. Coveragebaseline is beoordeeld. | T09 |
 | P3 | Werk deployment secrets later uit zodra echte secrets beschikbaar zijn. | T08 |
 
 ## 11. Conclusie

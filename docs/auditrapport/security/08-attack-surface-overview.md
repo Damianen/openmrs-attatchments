@@ -51,7 +51,7 @@ Out of scope:
 | AS-07 | File storage lezen | File system | `DefaultAttachmentHandler.getAttachmentByPath`, `DefaultAttachmentHandler.java:73` | Bestandsnaam/pad uit complex obs metadata | Attachment directory, Java file/path APIs | Path traversal, arbitrary file read | Ja | Path traversal tests/fix aanwezig in Sprint 2 |
 | AS-08 | File storage schrijven | File system | `ComplexObsSaver`, attachment handlers | Uploadbestand en afgeleide bestandsnaam | Attachment directory, OpenMRS complex obs | Overschrijven, ongewenste content, storage DoS | Ja | Uploadvalidatie, max file size en handlers; verdere logging nog beoordelen |
 | AS-09 | Global properties | Config | `AttachmentsConstants` GP_* en `config.xml` | Admin-configuratie | OpenMRS admin/configbeheer | Te ruime allowlist, te grote uploads, onveilige defaults | Middel | Veilige default allowlist in code; prod-config nog controleren |
-| AS-10 | CI/CD workflow | Build pipeline | `.github/workflows/*.yml` | Pull requests, dependencies, workflow config | GitHub Actions, Maven, Snyk, CodeQL | Supply chain, ongeteste wijzigingen, onveilige dependencies | Middel | CodeQL, Snyk, SBOM, Maven Tests workflow; required-check selectie blijft bewijsactie |
+| AS-10 | CI/CD workflow | Build pipeline | `.github/workflows/*.yml` | Pull requests, dependencies, workflow config | GitHub Actions, Maven, Snyk, CodeQL | Supply chain, ongeteste wijzigingen, onveilige dependencies | Middel | CodeQL, Snyk, SBOM, Maven Tests workflow; `api-tests` en `omod-security-tests` zijn required checks |
 
 ## 5. Impliciet vertrouwen
 
@@ -64,7 +64,7 @@ Out of scope:
 | OpenMRS runtime image | De module draait in de OpenMRS/Tomcat runtime die door Docker of productie wordt geleverd. | Compile-time dependency alerts kunnen afwijken van de echte runtime; kwetsbare endpoints kunnen per omgeving verschillen. | Alleen repository-prodconfig is bewezen: `MODULE_WEB_ADMIN=false` en modules read-only; productie-runtime en Tomcatversie nog door owner bevestigen. |
 | Global properties | Admin-config is correct en niet te ruim. | Lege/te ruime allowlist of uploadlimieten. | Veilige defaults, configcontrole en bewijs in CI/prod opnemen. |
 | Attachment file storage | Complex obs metadata verwijst naar bestanden binnen attachment-root. | Path traversal of uitlezen van serverbestanden. | Path normalization/root-checks en regressietests behouden. |
-| GitHub Actions | CI draait op elke PR en checks blokkeren merge. | Kwetsbare code kan zonder tests binnenkomen. | Maven Tests als required check selecteren na eerste workflow-run. |
+| GitHub Actions | CI draait op elke PR en checks blokkeren merge. | Kwetsbare code kan zonder tests binnenkomen. | Maven Tests is als required check ingericht via `api-tests` en `omod-security-tests`. |
 
 ## 6. Koppeling naar logging
 

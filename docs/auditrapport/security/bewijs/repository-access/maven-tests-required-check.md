@@ -1,125 +1,70 @@
-# B2 — Maven Tests als verplichte (required) status check op `main`
+# B2 - Maven Tests als verplichte status check op `main`
 
-Dit document beschrijft hoe de `Maven Tests`-workflow als **verplichte status check**
+Dit document beschrijft hoe de `Maven Tests`-workflow als verplichte status check
 op de `main`-branch wordt afgedwongen, plus de verificatie en het bijbehorende bewijs.
 Hiermee wordt het OTAP-onderdeel verdedigd: ongeteste of ongereviewde code kan niet
 naar `main` mergen.
 
 ## Exacte check-namen
 
-De workflow `.github/workflows/maven-tests.yml` (naam **`Maven Tests`**) heeft twee jobs.
-De namen zoals getoond in de PR-checks — en dus de contexts die als required check
-geselecteerd worden — zijn:
+De workflow `.github/workflows/maven-tests.yml` heet **Maven Tests** en heeft twee jobs.
+De namen zoals getoond in de PR-checks, en dus de contexts die als required check
+geselecteerd zijn, zijn:
 
-- **`api-tests`**
-- **`omod-security-tests`**
+- `api-tests`
+- `omod-security-tests`
 
-Beide draaien al groen op `main` (app `github-actions`), dus ze zijn selecteerbaar.
-We maken **beide** verplicht, zodat de volledige testworkflow de merge gatet.
+Beide draaien groen op `main` via GitHub Actions en zijn als required checks ingesteld.
+Daardoor gatet de volledige Maven testworkflow de merge naar `main`.
 
 ## Mechanisme
 
-`main` wordt beschermd door de actieve ruleset **`protect-main`** (id `17167317`).
-Die dwingt nu al af: geen verwijderen, verplichte PR-review (1) en geen force-push,
-maar **nog geen status checks**. De juiste, schone aanpak is daarom de **bestaande
-ruleset uitbreiden** met een `required_status_checks`-regel (in plaats van een
-losse, parallelle classic branch protection aan te maken).
+`main` wordt beschermd door de actieve ruleset **protect-main**. Die dwingt af:
 
-## Aanbevolen — bestaande ruleset `protect-main` uitbreiden
+- geen directe ongecontroleerde wijziging naar `main`;
+- verplichte pull request review;
+- geen force-push;
+- required status checks voor `api-tests` en `omod-security-tests`.
 
-De repository-owner draait dit commando (na `gh auth login`). Het behoudt de
-bestaande regels en voegt de twee verplichte checks toe:
+Een PR kan daardoor niet gemerged worden zolang een van deze Maven checks ontbreekt,
+nog draait of faalt.
 
-```bash
-gh api --method PUT repos/Damianen/openmrs-attatchments/rulesets/17167317 --input - <<'JSON'
-{
-  "name": "protect-main",
-  "target": "branch",
-  "enforcement": "active",
-  "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
-  "bypass_actors": [],
-  "rules": [
-    { "type": "deletion" },
-    { "type": "non_fast_forward" },
-    { "type": "pull_request", "parameters": {
-        "required_approving_review_count": 1,
-        "dismiss_stale_reviews_on_push": true,
-        "required_reviewers": [],
-        "require_code_owner_review": false,
-        "require_last_push_approval": false,
-        "required_review_thread_resolution": false,
-        "allowed_merge_methods": ["merge", "squash", "rebase"] } },
-    { "type": "required_status_checks", "parameters": {
-        "strict_required_status_checks_policy": false,
-        "do_not_enforce_on_create": false,
-        "required_status_checks": [
-          { "context": "api-tests" },
-          { "context": "omod-security-tests" } ] } }
-  ]
-}
-JSON
+## Verificatie
+
+De controle is als volgt:
+
+1. Open een PR naar `main`.
+2. Terwijl `api-tests` of `omod-security-tests` nog draaien, blokkeert GitHub de merge.
+3. Als een required check faalt, blijft de merge geblokkeerd.
+4. Pas wanneer beide checks groen zijn en de review-eis is gehaald, kan de PR worden gemerged.
+
+Dit sluit aan op de ingestelde branch/ruleset-protection en maakt security regressietests
+een echte quality gate in plaats van alleen een informatieve workflow.
+
+## Bewijs
+
+Bewijs hoort in deze map:
+
+`docs/auditrapport/security/bewijs/repository-access/`
+
+Aanbevolen bewijsbestanden:
+
+| Bestand | Toont |
+|---|---|
+| `maven-tests-required-check-ruleset.png` | Ruleset/settings-pagina waarin `api-tests` en `omod-security-tests` required zijn. |
+| `maven-tests-required-check-blocks-merge.png` | PR-mergebox waarin merge geblokkeerd wordt totdat required checks groen zijn. |
+| `maven-tests-required-check-mergeable.png` | Optioneel bewijs dat merge pas mogelijk is nadat de checks groen zijn. |
+
+## Beheercommando voor later
+
+Als de ruleset later opnieuw moet worden ingesteld, kan een repository-owner de bestaande
+ruleset uitbreiden met een `required_status_checks`-regel voor:
+
+```text
+api-tests
+omod-security-tests
 ```
 
-Optionele hardening: voeg per check `"integration_id": 15368` toe om de check vast te
-pinnen aan de GitHub Actions-app (voorkomt dat een andere app een check met dezelfde
-naam kan posten).
+De exacte instellingen kunnen via GitHub UI worden gecontroleerd onder:
 
-Controleer daarna dat de regel actief is:
-
-```bash
-gh api repos/Damianen/openmrs-attatchments/rulesets/17167317 \
-  --jq '.rules[] | select(.type=="required_status_checks")'
-```
-
-## Alternatief — classic branch protection
-
-> Let op: dit maakt een **apart** beschermingsmechanisme náást de ruleset. Alleen
-> kiezen als je bewust van ruleset naar classic branch protection wilt overstappen.
-
-```bash
-gh api --method PUT repos/Damianen/openmrs-attatchments/branches/main/protection --input - <<'JSON'
-{
-  "required_status_checks": { "strict": false,
-    "checks": [ { "context": "api-tests" }, { "context": "omod-security-tests" } ] },
-  "enforce_admins": false,
-  "required_pull_request_reviews": { "required_approving_review_count": 1 },
-  "restrictions": null
-}
-JSON
-```
-
-## Handmatige fallback (via de UI)
-
-Settings → Rules → Rulesets → **`protect-main`** (of Settings → Branches → Branch
-protection rule voor `main`) → **Require status checks to pass** aanvinken → in het
-zoekveld **`api-tests`** en **`omod-security-tests`** selecteren → opslaan.
-
-De checks zijn pas selecteerbaar nadat ze minstens één keer (groen) hebben gedraaid;
-dat is in deze repository al gebeurd.
-
-## Verificatie — wegwerp-PR die niet kan mergen tot de check groen is
-
-1. Maak een wegwerp-branch met een onschuldige wijziging en open een PR:
-   ```bash
-   git checkout -b chore/verify-required-check main
-   # kleine no-op wijziging, bv. een spatie in een markdownbestand
-   git commit -am "chore: verifieer required check (wegwerp)"
-   git push -u origin chore/verify-required-check
-   gh pr create --fill
-   ```
-2. Terwijl `api-tests` / `omod-security-tests` nog draaien, toont de merge-box
-   **"Required statuses must pass before merging"** en is de merge-knop **uitgeschakeld**.
-3. Zodra beide checks groen zijn, wordt de merge-knop actief — bewijs dat de check
-   de merge echt gatet.
-4. Sluit de PR en verwijder de wegwerp-branch.
-
-## Screenshots (bewijs)
-
-Plaats in deze map (`docs/auditrapport/security/bewijs/repository-access/`):
-
-- `maven-tests-required-check-ruleset.png` — de ruleset/settings-pagina met
-  `api-tests` en `omod-security-tests` aangevinkt als required status checks.
-- `maven-tests-required-check-blocks-merge.png` — de merge-box van de wegwerp-PR met
-  "Required statuses must pass before merging", merge-knop uitgeschakeld, beide checks zichtbaar.
-- (optioneel) `maven-tests-required-check-mergeable.png` — dezelfde PR nadat de checks
-  groen zijn en de merge-knop actief is.
+`Settings -> Rules -> Rulesets -> protect-main -> Require status checks to pass`

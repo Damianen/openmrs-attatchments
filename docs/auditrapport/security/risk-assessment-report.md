@@ -38,7 +38,7 @@ De OpenMRS Attachments Module verwerkt medische bijlagen en bijbehorende patient
 
 De belangrijkste risico's zitten in file access, uploadvalidatie, download-autorisatie, logging en dependencybeheer. Een eerder CodeQL-risico rond een raw `/download?path=` downloadpad is in de huidige broncode niet meer teruggevonden en is gekoppeld aan commit `e9e4aa0 fix CodeQL security alerts`. De huidige validatie gebruikt alleen UUID-gebaseerde attachment bytes en expliciete privilegechecks.
 
-De repository heeft al meerdere securitymaatregelen ingericht, zoals CodeQL/code scanning, Dependabot, SBOM-generatie, GitHub Environments, branch protection/rulesets, secret scanning en MFA-bewijs. Het pentestdocument is bijgewerkt naar 10 pentestcases. Voor de belangrijkste P1-pentestcases is before/after- en hertestbewijs toegevoegd in `bewijs/pentest/`. Tegelijk blijven er nog open acties over, vooral rond enkele P2-pentestbewijzen, false-positive registratie, dependencytriage, productie-runtimebevestiging en securitytests als verplichte quality gate.
+De repository heeft al meerdere securitymaatregelen ingericht, zoals CodeQL/code scanning, Dependabot, SBOM-generatie, GitHub Environments, branch protection/rulesets, secret scanning, MFA-bewijs en Maven Tests als required check. Het pentestdocument is bijgewerkt naar 10 pentestcases. Voor de belangrijkste P1-pentestcases is before/after- en hertestbewijs toegevoegd in `bewijs/pentest/`. Tegelijk blijven er nog open acties over, vooral rond enkele P2-pentestbewijzen, false-positive registratie, dependencytriage en productie-runtimebevestiging.
 
 ## 4. Scope
 
@@ -109,7 +109,7 @@ Voor patientdata geldt dat rode risico's niet onbehandeld mogen blijven. Oranje 
 | T06 | Malformed base64 upload kan onduidelijk foutgedrag geven | Beschikbaarheid, integriteit | 3 | 3 | 9 | Gemitigeerd en getest |
 | T07 | Legacy dependencies kunnen bekende CVE's bevatten | Vertrouwelijkheid, integriteit, beschikbaarheid | 3 | 4 | 12 | Gedeeltelijk afgerond; SCA-besluiten staan, runtimecontrole blijft open |
 | T08 | Deployment secrets en deployment workflow zijn nog niet volledig bewezen | Integriteit | 2 | 4 | 8 | Moet nog gedaan worden |
-| T09 | Build/securitytests zijn nog niet volledig betrouwbaar als quality gate | Integriteit, traceerbaarheid | 3 | 3 | 9 | Maven Tests workflow en JaCoCo coverage artifacts zijn ingericht en bewezen; required-check selectie blijft open omdat dit repository-owner rechten vraagt. Harde coverage threshold wordt in Sprint 3 bewust niet afgedwongen; coverage wordt via 60% reviewnorm en PR-review beoordeeld |
+| T09 | Build/securitytests als quality gate | Integriteit, traceerbaarheid | 2 | 3 | 6 | Maven Tests workflow en JaCoCo coverage artifacts zijn ingericht en bewezen. `api-tests` en `omod-security-tests` zijn required checks voor PR's naar `main`. Harde coverage threshold wordt in Sprint 3 bewust niet afgedwongen; coverage wordt via 60% reviewnorm en PR-review beoordeeld |
 | T10 | Attachmentmetadata kan verkeerd gekoppeld worden aan patient/context | Integriteit, vertrouwelijkheid | 2 | 4 | 8 | Gemitigeerd en getest voor upload patient/visit/encounter mismatch |
 
 ## 8. Hoogste risico's
@@ -177,7 +177,7 @@ De hoogste risico's uit de bestaande analyse zijn:
 | SB-05 | Verwijder onnodige PII uit logs en voeg veilige auditlogging toe | P2 | Gemitigeerd en getest voor attachment-fetch, upload/delete, bytes-download en concept-search lookup logging |
 | SB-06 | Maak base64 upload parsing robuust | P2 | Gemitigeerd en getest |
 | SB-07 | Triager dependency- en SBOM-findings | P2 | Besluiten afgerond; uitvoering/open runtimeonderzoek moet nog gedaan worden |
-| SB-08 | Maak securitytests en coverage betrouwbaar in CI | P2 | Maven test workflow en JaCoCo artifacts toegevoegd; coveragebaseline beoordeeld; Maven Tests nog als required check opnemen |
+| SB-08 | Maak securitytests en coverage betrouwbaar in CI | P2 | Maven test workflow en JaCoCo artifacts toegevoegd; coveragebaseline beoordeeld; Maven Tests is als required check ingericht |
 | SB-09 | Test en versterk metadata-/patientbinding bij upload | P2 | Gemitigeerd en getest |
 | SB-10 | Richt deployment secrets later veilig in via GitHub Environments | P3 | Moet nog gedaan worden |
 
@@ -227,17 +227,17 @@ Totale eerste inschatting: **46-73 uur**, oftewel **EUR 2.760-4.380** bij EUR 60
 
 ## 15. Security tests als quality gate
 
-Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow genereert ook JaCoCo coverage rapporten als artifacts. De eerste GitHub Actions run is groen en toont beide coverage artifacts. De JaCoCo HTML-overzichten zijn inhoudelijk beoordeeld: API line coverage is 74% en OMOD security line coverage is 66%. De Maven Tests check moet nog als verplichte required check in de ruleset worden geselecteerd door iemand met repository-owner rechten. Voor Sprint 3 is besloten om geen harde coverage threshold af te dwingen; coverage wordt beoordeeld via de 60% reviewnorm, artifactbewijs en PR-review.
+Securitytests zijn technisch ingericht als PR workflow. De Maven Tests workflow genereert ook JaCoCo coverage rapporten als artifacts. De eerste GitHub Actions run is groen en toont beide coverage artifacts. De JaCoCo HTML-overzichten zijn inhoudelijk beoordeeld: API line coverage is 74% en OMOD security line coverage is 66%. De Maven Tests jobs `api-tests` en `omod-security-tests` zijn als required checks ingesteld voor PR's naar `main`. Voor Sprint 3 is besloten om geen harde coverage threshold af te dwingen; coverage wordt beoordeeld via de 60% reviewnorm, artifactbewijs en PR-review.
 
 | Stap | Gewenste inrichting | Status |
 |---|---|---|
-| Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht en groen bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; required-check selectie volgt nog |
+| Maven testjob | Unit- en integratietests draaien bij pull requests | Ingericht, groen bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png` en required via `bewijs/repository-access/maven-tests-required-check.md` |
 | Coverage rapport | JaCoCo rapporten worden gemaakt voor API en OMOD security tests | Ingericht en artifacts bewezen in `bewijs/scanning/maven-tests-coverage-artifacts-success.png`; baseline beoordeeld in `bewijs/scanning/jacoco-api-coverage-overview.png` en `bewijs/scanning/jacoco-omod-security-coverage-overview.png`; geen harde threshold in Sprint 3 |
 | Security regressietests | Tests voor path traversal, uploadvalidatie, autorisatie, patientbinding en base64 parsing | Aanwezig voor path traversal, uploadvalidatie/MIME, download-autorisatie, patient/visit/encounter mismatch en base64 parsing |
 | SCA/SAST artifacts | Snyk SCA en Snyk Code resultaten bewaren als artifact | Aanwezig; artifact upload succesvol |
 | PR securitychecks | CodeQL, Snyk en code scanning draaien op pull requests | Aanwezig; groen bewijs in `bewijs/scanning/pr-security-checks-passed.png` |
 | SBOM artifact | CycloneDX SBOM genereren en bewaren | Aanwezig; artifact succesvol geupload in `Generate SBOM #15`; `sbom.cdx.json` staat in de bewijsmap |
-| Required checks | Branch protection/ruleset verplicht de security/testchecks | Aanwezig voor bestaande PR-checks; nieuwe Maven testjob moet na eerste run nog als required check worden geselecteerd |
+| Required checks | Branch protection/ruleset verplicht de security/testchecks | Aanwezig; `api-tests` en `omod-security-tests` zijn required checks |
 | Review policy | Pull requests naar `main` hebben minimaal 1 review nodig | Aanwezig; `bewijs/repository-access/dependabot-prs-review-required.png` toont dependency PR's met `Review required` |
 | Fail policy | Foutieve checks blokkeren merge; high/critical findings vragen expliciete triage | Aanwezig voor PR-checks; inhoudelijke triage staat in `06-sca-sbom-triage.md` |
 
@@ -253,7 +253,7 @@ De volgende onderdelen zijn nog niet volledig afgerond of vereisen externe recht
 | Pentest-bewijs | P1-hertestbewijs is toegevoegd voor secrets, raw path download, handler path traversal, upload allowlist/MIME en download-autorisatie. Voor P2-cases zoals malformed base64, patientcontext, log injection en search metadata disclosure kan nog extra request/response- of testoutputbewijs worden toegevoegd |
 | False-positive register | Registerdeel in `false-positive-beleid.md` aanvullen met beoordeelde scanbevindingen |
 | Dependencytriage | Besluiten zijn genomen; Tika oplossen met upgradepad en compensating control; OpenMRS alerts blijven open totdat productie-runtime, Tomcatversie en endpoint-exposure door owner zijn bevestigd |
-| Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding, base64 parsing en veilige logging zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht en de baseline is beoordeeld; Maven Tests moet nog als required check worden geselecteerd |
+| Securitytests en coverage | Path traversal, uploadvalidatie/MIME, download-autorisatie, patientbinding, base64 parsing en veilige logging zijn toegevoegd; Maven workflow met JaCoCo artifacts is ingericht, de baseline is beoordeeld en Maven Tests is required voor PR's naar `main` |
 | CI quality gate | PR-checks zijn groen bewezen en failed checks blokkeren merge; minimaal 1 review is verplicht |
 | Sprint 4 auditrapportage | Traceability matrix en security audit eindrapport zijn toegevoegd in `11-traceability-matrix.md` en `12-security-audit-eindrapport.md` |
 
@@ -261,4 +261,4 @@ De volgende onderdelen zijn nog niet volledig afgerond of vereisen externe recht
 
 De risk assessment laat zien dat de grootste risico's draaien om vertrouwelijkheid van patientattachments en patientmetadata. De basisdocumenten zijn aanwezig: assets, risicocriteria, threat model, pipeline-compliance, testdatabeleid en security backlog.
 
-De huidige beveiligingsinrichting bevat al belangrijke maatregelen zoals CodeQL, Dependabot, SBOM, secret scanning, MFA, environments en branch protection. Sprint 4 voegt hier een traceability matrix en security audit eindrapport aan toe. De belangrijkste vervolgstap is het afronden van de open owner- en runtimeafhankelijke punten, zoals Maven Tests als required check, Tika-upgradepad en productie-runtimebevestiging.
+De huidige beveiligingsinrichting bevat al belangrijke maatregelen zoals CodeQL, Dependabot, SBOM, secret scanning, MFA, environments, branch protection en required Maven Tests. Sprint 4 voegt hier een traceability matrix en security audit eindrapport aan toe. De belangrijkste vervolgstap is het afronden van de open runtimeafhankelijke punten, zoals het Tika-upgradepad en productie-runtimebevestiging.
