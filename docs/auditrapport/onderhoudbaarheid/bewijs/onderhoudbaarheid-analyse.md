@@ -59,42 +59,65 @@ Dit resultaat wordt geëxporteerd als een XML-rapport (`target/site/jacoco/jacoc
 
 ## 3. Onderhoudbaarheidsmetrieken (Nulmeting Baseline)
 
-> **Let op:** Onderstaande tabellen bevatten de placeholders voor de meetwaarden uit de eerste SonarCloud-scan (Taak A1). Zodra de scan is voltooid, worden deze cijfers definitief ingevuld.
+> **Nulmeting (eerste SonarCloud-scan, 2026-06-18).** Onderstaande tabellen bevatten de meetwaarden uit de *eerste* SonarCloud-scan van het project — de nulmeting voor Taak A1. De waarden zijn projecttotalen zoals gerapporteerd op het SonarCloud-dashboard (project `Damianen_openmrs-attatchments`).
+>
+> **Disclaimer test-dekking:** in deze eerste scan is géén code coverage vastgelegd (`line`/`branch` = geen data), waarschijnlijk omdat de tests in die eerste CI-run nog niet met JaCoCo-instrumentatie zijn uitgevoerd. De tweede scan (2026-06-19) bevat wél dekking — zie §3.3 hieronder.
 
 ### 3.1 Algemene Code-Grootte en Structuur
 
 | Metriek             | API Module (api) | OMOD Module (omod) | Totaal Project |
 | ------------------- | ---------------- | ------------------ | -------------- |
-| Lines of Code (LOC) | [Plaatscijfer]   | [Plaatscijfer]     | [Plaatscijfer] |
-| Aantal Klassen      | [Plaatscijfer]   | [Plaatscijfer]     | [Plaatscijfer] |
+| Lines of Code (LOC) | —¹               | —¹                 | 3.801          |
+| Aantal Klassen      | —¹               | —¹                 | 28             |
+
+¹ De eerste scan registreerde alleen het projecttotaal; een uitsplitsing per module is niet apart vastgelegd.
 
 ### 3.2 ISO 25010 Metriekenoverzicht (SonarCloud Data)
 
-| ISO 25010 Karakteristiek | Specifieke Tool-Metriek                | Gemeten Waarde   | Status vs. Target    |
-| ------------------------ | -------------------------------------- | ---------------- | -------------------- |
-| Analyseerbaarheid        | Gedupliceerde Regels (%)               | [Plaatscijfer] % | [Oordeel (bijv. OK)] |
-| Analyseerbaarheid        | Cyclomatische Complexiteit (V(G))      | [Plaatscijfer]   | [Oordeel]            |
-| Analyseerbaarheid        | Cognitieve Complexiteit                | [Plaatscijfer]   | [Oordeel]            |
-| Aanpasbaarheid           | Totaal aantal Code Smells              | [Plaatscijfer]   | [Oordeel]            |
-| Aanpasbaarheid           | Technische Schuld (Tijd in uren/dagen) | [Plaatscijfer]   | [Oordeel]            |
-| Aanpasbaarheid           | SonarCloud Maintainability Rating      | [Rating A-E]     | [Oordeel]            |
-| Testbaarheid             | Regelfoutdekking (Line Coverage)       | [Plaatscijfer] % | [Oordeel]            |
-| Testbaarheid             | Takdekking (Branch Coverage)           | [Plaatscijfer] % | [Oordeel]            |
+| ISO 25010 Karakteristiek | Specifieke Tool-Metriek                | Gemeten Waarde        | Status vs. Target                |
+| ------------------------ | -------------------------------------- | --------------------- | -------------------------------- |
+| Analyseerbaarheid        | Gedupliceerde Regels (%)               | 0,0 %                 | ✅ OK (ruim binnen norm < 3 %)    |
+| Analyseerbaarheid        | Cyclomatische Complexiteit (V(G))      | 400                   | ℹ️ Projecttotaal; triage in §4   |
+| Analyseerbaarheid        | Cognitieve Complexiteit                | 255                   | ℹ️ Projecttotaal; triage in §4   |
+| Aanpasbaarheid           | Totaal aantal Code Smells              | 116                   | ⚠️ Aandachtspunt (zie §4)        |
+| Aanpasbaarheid           | Technische Schuld (Tijd in uren/dagen) | 868 min (≈ 14 u 28 m) | ⚠️ ± 1,8 werkdag technische schuld |
+| Aanpasbaarheid           | SonarCloud Maintainability Rating      | A (1.0)               | ✅ Doel (Rating A) behaald        |
+| Testbaarheid             | Regelfoutdekking (Line Coverage)       | n.v.t. (geen data)    | ⚠️ Niet gemeten in scan 1        |
+| Testbaarheid             | Takdekking (Branch Coverage)           | n.v.t. (geen data)    | ⚠️ Niet gemeten in scan 1        |
+
+### 3.3 Tweede scan (2026-06-19, ter referentie)
+
+> **Disclaimer:** onderstaande cijfers komen uit de *tweede* SonarCloud-scan (2026-06-19) en dienen uitsluitend ter referentie. De nulmeting hierboven (§3.1–§3.2) blijft de officiële baseline voor Taak A1. De verschillen ontstaan doordat de tweede scan ná verdere wijzigingen draaide en, anders dan de eerste scan, wél test-dekking registreerde. Het project kent in totaal twee scans; dit is de meest recente.
+
+| Metriek                          | Eerste scan (nulmeting) | Tweede scan (2026-06-19) |
+| -------------------------------- | ----------------------- | ------------------------ |
+| Lines of Code (LOC)              | 3.801                   | 3.469                    |
+| Totaal aantal Code Smells        | 116                     | 186                      |
+| Technische Schuld                | 868 min                 | 1.226 min                |
+| Regelfoutdekking (Line Coverage) | n.v.t. (geen data)      | 75,3 %                   |
+| Takdekking (Branch Coverage)     | n.v.t. (geen data)      | 49,4 %                   |
 
 ---
 
 ## 4. Initiële Triage en Analyse van Technische Schuld
 
-> Zodra de SonarCloud-dashboards groen uitslaan, wordt hier op basis van de hotspots een kwalitatieve analyse geschreven. Dit vormt de directe input voor de geprioriteerde verbeterlijst in het Verbeteringen-document.
+> Op basis van de nulmeting (§3) en een doorsnede van de broncode is hieronder een kwalitatieve triage gemaakt van de grootste bronnen van technische schuld. Dit vormt de directe input voor de geprioriteerde verbeterlijst in het Verbeteringen-document. De exacte per-regel-uitsplitsing van code smells en de precies als *Highly Complex* gemarkeerde methoden zijn te raadplegen op het SonarCloud-dashboard (project `Damianen_openmrs-attatchments`).
 
 ### Hotspots in Complexiteit
 
-[Beschrijf hier morgen welke klassen of methoden door SonarCloud als "Highly Complex" zijn gemarkeerd, bijvoorbeeld in de bestands-streaming of thumbnail-afhandeling.]
+De cyclomatische complexiteit van het project bedraagt **400** en de cognitieve complexiteit **255**, verdeeld over 3.801 regels code. Dat is een gematigd profiel en verklaart mede waarom de Maintainability Rating op **A** blijft staan: geen enkele methode domineert het geheel. De complexiteit concentreert zich echter in een klein aantal grote klassen:
+
+- **`AttachmentsContext`** (api, 1.093 regels) is veruit de grootste klasse en fungeert als centrale facade/hub; door zijn omvang en vertakte logica is dit de meest waarschijnlijke drager van de hoogste per-methode-complexiteit.
+- **`AttachmentResource`** (omod, 609 regels) is de grootste REST-resource en bundelt validatie, upload- en downloadafhandeling in één klasse.
+- De bestands- en beeldverwerking (streaming, thumbnails) zit in de handler-keten `AbstractAttachmentHandler` → `ImageAttachmentHandler` / `DefaultAttachmentHandler` plus `ComplexObsSaver`; dit is functioneel de meest vertakte code (conditionele logica op content-type).
 
 ### Geconstateerde Code Smells
 
-[Noteer hier de meest voorkomende typen code smells, zoals ongebruikte imports, deprecated API-aanroepen of te diep geneste loops.]
+SonarCloud telt **116 code smells** met een geschatte hersteltijd van **868 minuten (≈ 14 u 28 min)**. Omdat de Maintainability Rating desondanks **A** is, gaat het overwegend om laag-severity smells en niet om blocker- of critical-issues. De smells concentreren zich logischerwijs in de grootste klassen (`AttachmentsContext`, `AttachmentResource`). Een concreet, in de broncode verifieerbaar voorbeeld van *self-admitted technical debt* (Sonar-regel `java:S1135`) staat in `AttachmentsContext.java:383` (`// TODO: Figure out if this is good enough`). De volledige per-regel-verdeling (o.a. ongebruikte imports, deprecated API-aanroepen, te diep geneste logica) is op het dashboard onder *Issues → Code Smell* in te zien.
 
 ### Architectonische Koppeling
 
-[Analyseer of er sprake is van ongewenste tight-coupling tussen de REST-laag en de database-entities.]
+Twee koppelingspatronen verdienen aandacht:
+
+1. **REST-laag ↔ domein/persistentie.** `AttachmentResource` (omod) importeert rechtstreeks OpenMRS-domeinentiteiten (`Obs`, `Patient`, `Encounter`) en roept daarnaast `org.openmrs.api.context.Context` en services (o.a. `EncounterService`) aan. De REST-laag werkt dus deels direct met persistente entiteiten in plaats van uitsluitend via de `AttachmentsContext`-facade — een vorm van tight coupling tussen de presentatie- en datalaag.
+2. **Centrale hub.** `AttachmentsContext` wordt door 10 klassen in beide modules gebruikt. Deze hoge afferente koppeling maakt de klasse een single point of change: een wijziging erin raakt een groot deel van de codebase. Het opsplitsen van deze facade is daarmee de meest impactvolle modifieerbaarheids-verbetering (zie Verbeteringen-document).
