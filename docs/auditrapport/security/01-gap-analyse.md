@@ -76,7 +76,7 @@ Onderstaande lijst bundelt de belangrijkste afwijkingen uit de gap-analyse, pent
 | 6 | Logging bevatte te veel patient-PII of was onvoldoende veilig tegen vervuilde logregels. | A.8.15, A.8.28 | Gedeeltelijk opgelost | Logberichten zijn geminimaliseerd en getest voor onderzochte paden; volledige productie-auditlogging blijft vervolgwerk. |
 | 7 | Critical dependencyfinding Apache Tika XXE is nog niet definitief opgelost. | A.8.8, A.8.28, A.8.29 | Open | Java/OpenMRS upgradepad bepalen of veilige Java 8-compatibele oplossing vinden; compensating controls zijn tijdelijk toegevoegd. |
 | 8 | OpenMRS Core runtimealerts voor Zip Slip/path traversal zijn nog niet met productiegegevens bevestigd. | A.8.8, A.8.25, A.8.29 | Open | Owner moet runtimeversie, Tomcatversie en endpoint-exposure bevestigen. |
-| 9 | Maven Tests zijn ingericht maar nog niet als required check geselecteerd. | A.8.25, A.8.29 | Open door rechten | Repository-owner moet de groene Maven Tests check toevoegen aan branch/ruleset protection. |
+| 9 | Maven Tests zijn ingericht als required check voor PR's naar `main`. | A.8.25, A.8.29 | Opgelost | `api-tests` en `omod-security-tests` zijn verplicht via branch/ruleset protection; bewijs staat in `bewijs/repository-access/maven-tests-required-check.md`. |
 | 10 | Environment secrets en deploymentflow zijn nog niet volledig aantoonbaar ingericht. | A.8.5, A.8.25 | Open | Echte secrets pas toevoegen via GitHub Environments zodra ze beschikbaar zijn; production approval behouden. |
 
 Deze lijst is bedoeld als compact stuurdocument voor de resterende audit- en Sprint 4-acties. Details, bewijs en risicoweging staan in `risk-assessment-report.md`, `06-sca-sbom-triage.md`, `11-traceability-matrix.md` en `12-security-audit-eindrapport.md`.

@@ -24,7 +24,7 @@ Tijdens het verbeteronderzoek zijn meerdere maatregelen aantoonbaar ingericht of
 - bijgewerkt pentestdocument met 10 pentestcases;
 - traceability naar NEN-7510:2024 controls.
 
-De belangrijkste open punten zijn niet inhoudelijk genegeerd, maar expliciet vastgelegd: Tika-upgradepad, productie-runtimecontrole, OpenMRS Core exposure en het verplicht maken van Maven Tests als required check.
+De belangrijkste open punten zijn niet inhoudelijk genegeerd, maar expliciet vastgelegd: Tika-upgradepad, productie-runtimecontrole en OpenMRS Core exposure. Maven Tests is inmiddels als required check ingericht voor PR's naar `main`.
 
 ## 2. Scope en context
 
@@ -56,7 +56,6 @@ Belangrijke onderdelen:
 - echte productiepatientdata;
 - volledige OpenMRS Core audit;
 - productie-infrastructuur buiten deze repository;
-- owner-only GitHub settings die niet door het team aangepast kunnen worden;
 - definitieve bevestiging van productie-runtime/Tomcatversie, omdat die informatie niet aantoonbaar in deze repository staat.
 
 ## 3. Auditmethodologie
@@ -207,7 +206,7 @@ De module heeft een duidelijke securityverbetering doorgemaakt. De belangrijkste
 
 Advies:
 
-1. Maak Maven Tests verplicht in de GitHub ruleset zodra een owner dit kan instellen.
+1. Houd Maven Tests verplicht in de GitHub ruleset en bewaak dat `api-tests` en `omod-security-tests` groen blijven op PR's.
 2. Rond het Tika-upgradepad af via Java/OpenMRS upgrade of een veilige Java 8-compatibele oplossing.
 3. Laat een owner de echte productie-runtime, Tomcatversie en module endpoint exposure bevestigen.
 4. Houd Snyk, CodeQL, Dependabot en SBOM periodiek actief en bewaar relevante artifacts bij releases.
@@ -234,7 +233,7 @@ Advies:
 
 | Item | Waarom niet afgerond | Vervolg |
 |---|---|---|
-| Maven Tests als required check | Vereist repository-owner rechten. | Owner moet de check selecteren in branch/ruleset settings. |
+| Maven Tests als required check | Ingericht. | `api-tests` en `omod-security-tests` zijn required checks; bewijs staat in `bewijs/repository-access/maven-tests-required-check.md`. |
 | Tika definitieve upgrade | Tika 3.2.2 vereist Java 11; project draait op Java 8. | Upgradepad onderzoeken of Java 8-compatibele oplossing kiezen. |
 | OpenMRS Core runtime/exposure | Productie-runtime staat niet aantoonbaar in deze repository. | Owner/deploymentbeheerder moet runtime en endpointbereikbaarheid bevestigen. |
 | Productie-infrastructuur audit | Buiten repositoryscope. | Apart behandelen met toegang tot deploymentomgeving. |
