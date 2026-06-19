@@ -9,12 +9,12 @@ De cijfers zijn al in `validatie.md` ingevuld op basis van de SonarCloud-oogst
 
 ## Checklist
 
-- [ ] `sonar-na-main-summary.png` — Summary `main`: Quality Gate **Passed**, Security **A**,
+- [x] `sonar-na-main-summary.png` — Summary `main`: Quality Gate **Passed**, Security **A**,
       0 open issues.
-- [ ] `sonar-na-hotspots-leeg.png` — Security Hotspots `main`: **100% reviewed**, 0 "to review".
-- [ ] `sonar-na-issues-security-0.png` — Issues `main` gefilterd op Security: **0** open
+- [x] `sonar-na-hotspots-leeg.png` — Security Hotspots `main`: **100% reviewed**, 0 "to review".
+- [x] `sonar-na-issues-security-0.png` — Issues `main` gefilterd op Security: **0** open
       security issues.
-- [ ] `sonar-pr33-summary.png` — PR #33 Summary: Quality Gate **Passed**, 0 New Issues,
+- [x] `sonar-pr33-summary.png` — PR #33 Summary: Quality Gate **Passed**, 0 New Issues,
       0 New Hotspots.
 - [ ] `sonar-voor-activity.png` *(optioneel/historisch)* — Activity-datapunt vóór commit
       `99486699`. **Let op:** momenteel niet beschikbaar (Activity-pagina geeft een fout);

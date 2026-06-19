@@ -148,23 +148,17 @@ verwacht voor een secrets→env-refactor, ook niet structureel verbeterd heeft (
 
 | Metric | Na A3 (`main`) | Beoordeling |
 |---|---|---|
-| Quality Gate | ✅ Passed (Sonar way) | — |
-| Security Rating / open issues | A / 0 | verbeterd (bevinding weg) |
+| Quality Gate | ❌ Failed op New Code Reliability (C) — niet-blokkerend; zie §8 | — |
+| Security Rating / open issues | 0 op New Code; 1 bestaande legacy-vulnerability buiten A3-scope | verbeterd (bevinding weg) |
 | Reliability Rating / open issues | C / 5 | ongewijzigd (zie §8) |
 | Maintainability Rating / open issues | A / 116 | ongewijzigd (zie §8) |
 | Duplications | 0,0% (op 5,1k regels) | al schoon vóór A3 |
-| Coverage | – (niet gemeten in SonarCloud) | zie §4.4 |
+| Coverage | 70,7% (line 75,3% / branch 49,4%) | zie §4.4 |
 | Lines of Code | 3,8k | — |
 
 ### 4.4 Coverage-lacune in SonarCloud
 
-SonarCloud toont **geen** coverage (`–`): de JaCoCo-rapporten worden in de Sonar-workflow
-niet gegenereerd vóór de scan, dus SonarCloud krijgt geen coveragedata. De coveragecijfers
-in §3.2 komen daarom uit de **lokale `mvn verify` + JaCoCo**-run (stap 3–4 van de
-reproduceercommando's); dat is voor dit rapport de enige coveragebron. Wil je coverage ook
-in SonarCloud zien, laat de Sonar-workflow dan eerst `test jacoco:report` draaien zodat
-`jacoco.xml` bestaat vóór de scan (de paden staan al in de parent-`pom.xml` via
-`sonar.coverage.jacoco.xmlReportPaths`).
+SonarCloud rapporteert nu coverage (70,7%) omdat `sonar.yml` `test jacoco:report` vóór de scan draait.
 
 ## 5. Narratief: waarom dit aan A3 toe te schrijven is
 
@@ -247,5 +241,5 @@ De A3-refactor is gevalideerd. **Lokaal:** de volledige suite draait groen (75 t
 de hardcoded-secret-bevinding aantoonbaar verdwenen. De winst zit in security + een beter
 modifieerbaar, testbaar ontwerp (SRP + DIP), niet in complexiteit, reliability of
 maintainability — die blijven, zoals verwacht voor een secrets→env-refactor, ongewijzigd
-(zie §8). De enige openstaande meetlacune is de niet-bewaarde vóór-staat in SonarCloud en
-het ontbreken van coverage in SonarCloud (§4); beide zijn hierboven expliciet benoemd.
+(zie §8). De enige openstaande meetlacune is de niet-bewaarde vóór-staat in SonarCloud
+(§4); deze is hierboven expliciet benoemd.

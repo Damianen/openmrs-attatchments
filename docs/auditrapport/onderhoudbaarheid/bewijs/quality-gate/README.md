@@ -8,9 +8,9 @@ maar breekt de CI-build niet (zie sectie 2 van het document).
 
 ## Checklist
 
-- [ ] `sonar-gate-conditions.png` — SonarCloud gate-configuratie met alle condities (sectie 4).
-- [ ] `sonar-gate-status.png` — SonarCloud projecthome met de gate-status (**Passed** of
+- [x] `sonar-gate-conditions.png` — SonarCloud gate-configuratie met alle condities (sectie 4).
+- [x] `sonar-gate-status.png` — SonarCloud projecthome met de gate-status (**Passed** of
       **Failed** met de condities).
 - [ ] `sonar-pr-decoration.png` — de gate-status als PR-decoratie/check (het reviewsignaal).
-- [ ] `ci-sonarcloud-run.png` — GitHub Actions, workflow **SonarCloud**: de **groene** run
+- [x] `ci-sonarcloud-run.png` — GitHub Actions, workflow **SonarCloud**: de **groene** run
       (de analyse draait zonder de build te breken).
