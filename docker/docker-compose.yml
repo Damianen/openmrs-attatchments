@@ -13,6 +13,11 @@ services:
       DB_AUTO_UPDATE: "true"
       MODULE_WEB_ADMIN: "true"
       OMRS_DEV_DEBUG: "${OMRS_DEV_DEBUG:-true}"
+      # Storage backend credentials are read from the environment by the module (StorageConfig),
+      # never hardcoded and never stored in the OpenMRS database. Values come from the .env file.
+      ATTACHMENTS_STORAGE_ACCESS_KEY: ${ATTACHMENTS_STORAGE_ACCESS_KEY}
+      ATTACHMENTS_STORAGE_SECRET_KEY: ${ATTACHMENTS_STORAGE_SECRET_KEY}
+      ATTACHMENTS_STORAGE_BUCKET: ${ATTACHMENTS_STORAGE_BUCKET}
     depends_on:
       - db
     volumes:

@@ -1,0 +1,61 @@
+name: SonarCloud
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # SonarCloud needs full git history for blame / new-code detection.
+          fetch-depth: 0
+
+      # --- Build + test on JDK 8 (OpenMRS / PowerMock tests require JDK 8) ---
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+          cache: 'maven'
+
+      # Build steps mirror the green maven-tests.yml so the build is known to pass
+      # and jacoco.xml lands in both api/ and omod/ target/site/jacoco/.
+      - name: Run API tests + coverage
+        run: mvn -pl api "-Dformatter.skip=true" test jacoco:report
+
+      - name: Install API artifact for OMOD tests
+        run: mvn -pl api "-Dformatter.skip=true" "-DskipTests" install
+
+      - name: Run OMOD tests + coverage
+        run: mvn -pl omod "-Dformatter.skip=true" "-Dtest=AttachmentResourceTest,AttachmentRestControllerTest,AttachmentBytesResourceTest,ObsByConceptListSearchHandlerTest" "-Dsurefire.failIfNoSpecifiedTests=false" test jacoco:report
+
+      # --- Run the SonarCloud scanner on JDK 17 (current scanner requires JDK 11+) ---
+      # The scanner only reads sources, compiled classes and the JaCoCo XML produced above;
+      # it does not recompile, so switching the JDK here is safe.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: SonarCloud scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        # Fully-qualified goal without a version resolves the latest released scanner
+        # (SonarCloud-compatible). Runs at the reactor root so the whole project is analysed;
+        # organization / projectKey / host.url / coverage paths come from the parent pom.
+        run: mvn -B "-Dformatter.skip=true" org.sonarsource.scanner.maven:sonar-maven-plugin:sonar

@@ -40,6 +40,15 @@
     <serialization.xstreamVersion>0.2.8</serialization.xstreamVersion>
     <javaxVersion>3.0.1</javaxVersion>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- SonarCloud configuration. CONFIRM organization + projectKey against the SonarCloud UI
+         after importing the repo (SonarCloud shows the exact generated keys; replace if they differ). -->
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <sonar.organization>damianen</sonar.organization>
+    <sonar.projectKey>Damianen_openmrs-attatchments</sonar.projectKey>
+    <!-- Point every module at BOTH module reports so coverage aggregates and never shows 0%.
+         ${maven.multiModuleProjectDirectory} resolves to the reactor root in every module. -->
+    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/api/target/site/jacoco/jacoco.xml,${maven.multiModuleProjectDirectory}/omod/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
   </properties>
 
   <dependencies>
@@ -122,6 +131,15 @@
             <id>prepare-coverage-agent</id>
             <goals>
               <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <!-- Emit jacoco.xml (read by SonarCloud) in every module after tests run.
+                 Bound to verify so it runs after the test phase; inherited by api + omod. -->
+            <id>jacoco-report</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report</goal>
             </goals>
           </execution>
         </executions>
