@@ -67,3 +67,11 @@ api/OpenMRS_logo.png
 docker/.env
 docker/.env.*
 !docker/.env.template
+
+# Editor / OS / temp cruft (repo hygiene — LU2 demo cleanup)
+.idea/
+.vscode/
+Thumbs.db
+*.swp
+*.tmp
+*.log
