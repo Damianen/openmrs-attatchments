@@ -59,27 +59,43 @@ Dit resultaat wordt geëxporteerd als een XML-rapport (`target/site/jacoco/jacoc
 
 ## 3. Onderhoudbaarheidsmetrieken (Nulmeting Baseline)
 
-> **Let op:** Onderstaande tabellen bevatten de placeholders voor de meetwaarden uit de eerste SonarCloud-scan (Taak A1). Zodra de scan is voltooid, worden deze cijfers definitief ingevuld.
+> **Nulmeting (eerste SonarCloud-scan, 2026-06-18).** Onderstaande tabellen bevatten de meetwaarden uit de *eerste* SonarCloud-scan van het project — de nulmeting voor Taak A1. De waarden zijn projecttotalen zoals gerapporteerd op het SonarCloud-dashboard (project `Damianen_openmrs-attatchments`).
+>
+> **Disclaimer test-dekking:** in deze eerste scan is géén code coverage vastgelegd (`line`/`branch` = geen data), waarschijnlijk omdat de tests in die eerste CI-run nog niet met JaCoCo-instrumentatie zijn uitgevoerd. De tweede scan (2026-06-19) bevat wél dekking — zie §3.3 hieronder.
 
 ### 3.1 Algemene Code-Grootte en Structuur
 
 | Metriek             | API Module (api) | OMOD Module (omod) | Totaal Project |
 | ------------------- | ---------------- | ------------------ | -------------- |
-| Lines of Code (LOC) | [Plaatscijfer]   | [Plaatscijfer]     | [Plaatscijfer] |
-| Aantal Klassen      | [Plaatscijfer]   | [Plaatscijfer]     | [Plaatscijfer] |
+| Lines of Code (LOC) | —¹               | —¹                 | 3.801          |
+| Aantal Klassen      | —¹               | —¹                 | 28             |
+
+¹ De eerste scan registreerde alleen het projecttotaal; een uitsplitsing per module is niet apart vastgelegd.
 
 ### 3.2 ISO 25010 Metriekenoverzicht (SonarCloud Data)
 
-| ISO 25010 Karakteristiek | Specifieke Tool-Metriek                | Gemeten Waarde   | Status vs. Target    |
-| ------------------------ | -------------------------------------- | ---------------- | -------------------- |
-| Analyseerbaarheid        | Gedupliceerde Regels (%)               | [Plaatscijfer] % | [Oordeel (bijv. OK)] |
-| Analyseerbaarheid        | Cyclomatische Complexiteit (V(G))      | [Plaatscijfer]   | [Oordeel]            |
-| Analyseerbaarheid        | Cognitieve Complexiteit                | [Plaatscijfer]   | [Oordeel]            |
-| Aanpasbaarheid           | Totaal aantal Code Smells              | [Plaatscijfer]   | [Oordeel]            |
-| Aanpasbaarheid           | Technische Schuld (Tijd in uren/dagen) | [Plaatscijfer]   | [Oordeel]            |
-| Aanpasbaarheid           | SonarCloud Maintainability Rating      | [Rating A-E]     | [Oordeel]            |
-| Testbaarheid             | Regelfoutdekking (Line Coverage)       | [Plaatscijfer] % | [Oordeel]            |
-| Testbaarheid             | Takdekking (Branch Coverage)           | [Plaatscijfer] % | [Oordeel]            |
+| ISO 25010 Karakteristiek | Specifieke Tool-Metriek                | Gemeten Waarde        | Status vs. Target                |
+| ------------------------ | -------------------------------------- | --------------------- | -------------------------------- |
+| Analyseerbaarheid        | Gedupliceerde Regels (%)               | 0,0 %                 | ✅ OK (ruim binnen norm < 3 %)    |
+| Analyseerbaarheid        | Cyclomatische Complexiteit (V(G))      | 400                   | ℹ️ Projecttotaal; triage in §4   |
+| Analyseerbaarheid        | Cognitieve Complexiteit                | 255                   | ℹ️ Projecttotaal; triage in §4   |
+| Aanpasbaarheid           | Totaal aantal Code Smells              | 116                   | ⚠️ Aandachtspunt (zie §4)        |
+| Aanpasbaarheid           | Technische Schuld (Tijd in uren/dagen) | 868 min (≈ 14 u 28 m) | ⚠️ ± 1,8 werkdag technische schuld |
+| Aanpasbaarheid           | SonarCloud Maintainability Rating      | A (1.0)               | ✅ Doel (Rating A) behaald        |
+| Testbaarheid             | Regelfoutdekking (Line Coverage)       | n.v.t. (geen data)    | ⚠️ Niet gemeten in scan 1        |
+| Testbaarheid             | Takdekking (Branch Coverage)           | n.v.t. (geen data)    | ⚠️ Niet gemeten in scan 1        |
+
+### 3.3 Tweede scan (2026-06-19, ter referentie)
+
+> **Disclaimer:** onderstaande cijfers komen uit de *tweede* SonarCloud-scan (2026-06-19) en dienen uitsluitend ter referentie. De nulmeting hierboven (§3.1–§3.2) blijft de officiële baseline voor Taak A1. De verschillen ontstaan doordat de tweede scan ná verdere wijzigingen draaide en, anders dan de eerste scan, wél test-dekking registreerde. Het project kent in totaal twee scans; dit is de meest recente.
+
+| Metriek                          | Eerste scan (nulmeting) | Tweede scan (2026-06-19) |
+| -------------------------------- | ----------------------- | ------------------------ |
+| Lines of Code (LOC)              | 3.801                   | 3.469                    |
+| Totaal aantal Code Smells        | 116                     | 186                      |
+| Technische Schuld                | 868 min                 | 1.226 min                |
+| Regelfoutdekking (Line Coverage) | n.v.t. (geen data)      | 75,3 %                   |
+| Takdekking (Branch Coverage)     | n.v.t. (geen data)      | 49,4 %                   |
 
 ---
 
